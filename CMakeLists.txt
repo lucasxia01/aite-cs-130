@@ -32,6 +32,9 @@ set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.50 REQUIRED COMPONENTS system)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
+# Including custom cmake rules, code from https://www.labri.fr/perso/fleury/posts/programming/using-clang-tidy-and-clang-format.html
+include(cmake/clang-cxx-dev-tools.cmake)
+
 include_directories(include)
 
 # adds libraries for server.cc and session.cc
