@@ -10,16 +10,27 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 
-#include "server.h"
 #include "config_parser.h"
+#include "server.h"
 
-int ParsePortNumber(const char* file_name) {
+int ParsePortNumber(const char *file_name) {
   NginxConfigParser config_parser;
   NginxConfig config;
   config_parser.Parse(file_name, &config);
-  printf("%s", config.ToString().c_str());
-  return -1;
+  // we want to look for the port number in the server block
+  std::vector<std::string> block_names = {"server"};
+  // field name should be port
+  std::string field_name = "port";
+  std::string field_value =
+      config_parser.configLookup(config, block_names, field_name);
+  std::cerr << field_value << '\n';
+  // we did not find a port number
+  if (field_value == "")
+    return -1;
+  using namespace std;
+  return atoi(field_value.c_str());
 }
 
 int main(int argc, char *argv[]) {
@@ -32,11 +43,11 @@ int main(int argc, char *argv[]) {
     boost::asio::io_service io_service;
 
     int port_num = ParsePortNumber(argv[1]);
-    if (port_num == -1) 
-    {
+    if (port_num == -1) {
       std::cerr << "Could not parse a port number from config file\n";
       return 2;
     }
+    printf("Parsed port number %d\n", port_num);
     server s(io_service, port_num);
 
     io_service.run();

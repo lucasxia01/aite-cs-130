@@ -1,0 +1,4 @@
+foo "bar"{
+    this should work;
+}
+"this should also work";

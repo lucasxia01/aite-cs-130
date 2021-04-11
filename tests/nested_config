@@ -1,0 +1,12 @@
+http {
+  server {
+    listen   80;
+  }
+}
+http {
+  server {
+    server_name foo.com;
+    root /home/ubuntu/sites/foo/;
+  }
+  foo "bar";
+}
