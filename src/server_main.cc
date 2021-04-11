@@ -12,6 +12,15 @@
 #include <iostream>
 
 #include "server.h"
+#include "config_parser.h"
+
+int ParsePortNumber(const char* file_name) {
+  NginxConfigParser config_parser;
+  NginxConfig config;
+  config_parser.Parse(file_name, &config);
+  printf("%s", config.ToString().c_str());
+  return -1;
+}
 
 int main(int argc, char *argv[]) {
   try {
@@ -22,8 +31,13 @@ int main(int argc, char *argv[]) {
 
     boost::asio::io_service io_service;
 
-    using namespace std; // For atoi.
-    server s(io_service, atoi(argv[1]));
+    int port_num = ParsePortNumber(argv[1]);
+    if (port_num == -1) 
+    {
+      std::cerr << "Could not parse a port number from config file\n";
+      return 2;
+    }
+    server s(io_service, port_num);
 
     io_service.run();
   } catch (std::exception &e) {

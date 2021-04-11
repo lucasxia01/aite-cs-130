@@ -40,8 +40,9 @@ include_directories(include)
 # adds libraries for server.cc and session.cc
 add_library(server_lib src/server.cc)
 add_library(session_lib src/session.cc)
+add_library(config_parser_lib src/config_parser.cc)
 # add server_lib dependency on session_lib
-target_link_libraries(server_lib session_lib)
+target_link_libraries(server_lib session_lib config_parser_lib)
 
 # Creates executable
 add_executable(server src/server_main.cc)
