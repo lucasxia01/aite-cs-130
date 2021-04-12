@@ -5,6 +5,7 @@ tcp::socket &session::socket() { return socket_; }
 void session::start() { session::read(); }
 
 void session::read() {
+  memset(data_,0,sizeof(data_));
   socket_.async_read_some(
       boost::asio::buffer(data_, max_length),
       boost::bind(&session::handle_read, this, boost::asio::placeholders::error,
@@ -14,11 +15,11 @@ void session::read() {
 void session::handle_read(const boost::system::error_code &error,
                           size_t bytes_transferred) {
   if (!error) {
-    int buf_size = strlen(data_) + MAX_RESPONSE_HEADER_SIZE;
+    int buf_size = bytes_transferred + MAX_RESPONSE_HEADER_SIZE;
     char response_buffer[buf_size];
     sprintf(response_buffer,
             "%s %s\nContent-Type: %s\nContent-Length: %li\n\n%s", "HTTP/1.1",
-            "200 OK", "text/plain", strlen(data_), data_);
+            "200 OK", "text/plain", bytes_transferred, data_);
     session::write(response_buffer);
   } else {
     delete this;
