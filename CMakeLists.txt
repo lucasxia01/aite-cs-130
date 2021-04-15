@@ -41,6 +41,10 @@ include_directories(include)
 add_library(server_lib src/server.cc)
 add_library(session_lib src/session.cc)
 add_library(config_parser_lib src/config_parser.cc)
+add_library(request_parser_lib src/request_parser.cc)
+
+# add session_lib dependency on request_parser_lib
+target_link_libraries(session_lib request_parser_lib)
 
 # add server_lib dependency on session_lib
 target_link_libraries(server_lib session_lib config_parser_lib)

@@ -103,7 +103,8 @@ NginxConfigParser::configLookup(NginxConfig &config,
       // if it matches current block name, we want to recurse into it
       if (tokens.size() > 0 && tokens[0] == block_names[0]) {
         block_names.erase(block_names.begin());
-        return configLookup(*statement->child_block_, block_names, field_name);
+        return NginxConfigParser::configLookup(*statement->child_block_,
+                                               block_names, field_name);
       }
     }
   }
