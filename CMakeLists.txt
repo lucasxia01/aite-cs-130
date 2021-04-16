@@ -76,6 +76,7 @@ target_link_libraries(response_utils_test response_utils gtest_main)
 #consider adding gmock
 target_link_libraries(request_parser_lib_test request_parser_lib gtest_main)
 
+add_test(NAME integration_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/integration_tests.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration)
 
 # Automatically add tests with CTest by querying the compiled test executable for available tests
 gtest_discover_tests(config_parser_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/config_parser)
