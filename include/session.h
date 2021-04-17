@@ -19,7 +19,6 @@ public:
   static const int MAX_RESPONSE_HEADER_SIZE;
   static const std::string INVALID_REQUEST_MESSAGE;
 
-private:
   void read_header();
   void read_body(size_t content_length);
   void write(char *response_buffer);

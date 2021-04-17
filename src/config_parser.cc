@@ -14,37 +14,7 @@
 #include <stack>
 #include <string>
 #include <vector>
-std::string NginxConfig::ToString(int depth) {
-  std::string serialized_config;
-  for (const auto &statement : statements_) {
-    serialized_config.append(statement->ToString(depth));
-  }
-  return serialized_config;
-}
-std::string NginxConfigStatement::ToString(int depth) {
-  std::string serialized_statement;
-  for (int i = 0; i < depth; ++i) {
-    serialized_statement.append("  ");
-  }
-  for (unsigned int i = 0; i < tokens_.size(); ++i) {
-    if (i != 0) {
-      serialized_statement.append(" ");
-    }
-    serialized_statement.append(tokens_[i]);
-  }
-  if (child_block_.get() != nullptr) {
-    serialized_statement.append(" {\n");
-    serialized_statement.append(child_block_->ToString(depth + 1));
-    for (int i = 0; i < depth; ++i) {
-      serialized_statement.append("  ");
-    }
-    serialized_statement.append("}");
-  } else {
-    serialized_statement.append(";");
-  }
-  serialized_statement.append("\n");
-  return serialized_statement;
-}
+
 const char *NginxConfigParser::TokenTypeAsString(TokenType type) {
   switch (type) {
   case TOKEN_TYPE_START:
@@ -233,6 +203,19 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream *input,
   }
   // If we get here, we reached the end of the file.
   if (state == TOKEN_STATE_SINGLE_QUOTE || state == TOKEN_STATE_DOUBLE_QUOTE) {
+    return TOKEN_TYPE_ERROR;
+  }
+  // if there is something in front of EOF
+  if (value->length() > 1) {
+    input->unget();
+    switch (state) {
+    case (TOKEN_STATE_TOKEN_TYPE_NORMAL):
+      return TOKEN_TYPE_NORMAL;
+    case (TOKEN_STATE_TOKEN_TYPE_COMMENT):
+      return TOKEN_TYPE_COMMENT;
+    default:
+      return TOKEN_TYPE_ERROR;
+    }
     return TOKEN_TYPE_ERROR;
   }
   return TOKEN_TYPE_EOF;

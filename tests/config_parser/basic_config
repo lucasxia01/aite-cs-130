@@ -1,10 +1,10 @@
 foo 0;
 server {
-  port  80;
+  port  8080;
   server_name foo.com;
 
   stupid {
-    port  8080;
+    port  80;
     server_name foo.com;
     root /home/ubuntu/sites/foo/;
   }

@@ -12,6 +12,7 @@
 #define HTTP_SERVER3_HEADER_H
 
 #include <string>
+#include <tuple>
 
 namespace http {
 namespace server3 {
@@ -19,6 +20,10 @@ namespace server3 {
 struct header {
   std::string name;
   std::string value;
+  friend bool operator==(const header &l, const header &r) {
+    return std::tie(l.name, l.value) ==
+           std::tie(r.name, r.value); // keep the same order
+  }
 };
 
 } // namespace server3

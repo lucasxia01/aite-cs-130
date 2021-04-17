@@ -7,14 +7,13 @@ protected:
   NginxConfigParser parser;
   NginxConfig out_config;
 };
-
 TEST_F(NginxConfigParserTest, OneBlockDeepPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"server"};
   std::string field_name = "port";
   std::string field_value =
       parser.configLookup(out_config, block_names, field_name);
-  EXPECT_EQ(field_value, "80");
+  EXPECT_EQ(field_value, "8080");
   EXPECT_TRUE(success);
 }
 
@@ -24,7 +23,7 @@ TEST_F(NginxConfigParserTest, TwoBlockDeepPortLookup) {
   std::string field_name = "port";
   std::string field_value =
       parser.configLookup(out_config, block_names, field_name);
-  EXPECT_EQ(field_value, "8080");
+  EXPECT_EQ(field_value, "80");
   EXPECT_TRUE(success);
 }
 
@@ -112,4 +111,32 @@ TEST_F(NginxConfigParserTest, QuoteNoSpaceConfigPass) {
 TEST_F(NginxConfigParserTest, BackslashConfig) {
   bool success = parser.Parse("backslash_config", &out_config);
   EXPECT_TRUE(success);
+}
+TEST_F(NginxConfigParserTest, NonEscapedConfig) {
+  bool success = parser.Parse("not_escaped_config", &out_config);
+  EXPECT_TRUE(success);
+}
+TEST_F(NginxConfigParserTest, ExtraQuote) {
+  bool success = parser.Parse("extra_quote_config", &out_config);
+  EXPECT_FALSE(success);
+}
+TEST_F(NginxConfigParserTest, NoSemiColonOrEndBlockBeforeEOF) {
+  bool success = parser.Parse("missing_end_config", &out_config);
+  EXPECT_FALSE(success);
+}
+TEST_F(NginxConfigParserTest, InvalidBeforeStmtEnd) {
+  bool success = parser.Parse("invalid_before_stmt_end_config", &out_config);
+  EXPECT_FALSE(success);
+}
+TEST_F(NginxConfigParserTest, InvalidBeforeStmtStart) {
+  bool success = parser.Parse("invalid_before_stmt_start_config", &out_config);
+  EXPECT_FALSE(success);
+}
+TEST_F(NginxConfigParserTest, BracketBfStmtEnd) {
+  bool success = parser.Parse("bracket_bf_stmt_end_config", &out_config);
+  EXPECT_FALSE(success);
+}
+TEST_F(NginxConfigParserTest, NormalBfEndBracket) {
+  bool success = parser.Parse("normal_bf_end_bracket_config", &out_config);
+  EXPECT_FALSE(success);
 }

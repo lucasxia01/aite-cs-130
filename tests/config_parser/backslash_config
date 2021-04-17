@@ -1,3 +1,4 @@
-foo "bar\tAnd\n";
+foo "bar\tAnd\n\rsomething";
 foo "bar\"";
 foo 'bar\'';
+foo 'bar\t\n\rsomething';
