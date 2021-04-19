@@ -1,11 +1,5 @@
 #!/bin/bash
 
-cd ../..
-mkdir build
-cd build
-cmake ..
-cd ../tests/integration
-
 # Running the server with a static config file in the background
 ../../build/bin/server ../config_parser/basic_config &
 # Storing the pid so we can kill the process later
