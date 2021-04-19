@@ -65,16 +65,15 @@ target_link_libraries(server Boost::system pthread server_lib)
 add_executable(config_parser_lib_test tests/config_parser/config_parser_test.cc)
 add_executable(server_utils_test tests/utils/server_utils_test.cc)
 add_executable(response_utils_test tests/utils/response_utils_test.cc)
-# add_executable(session_lib_test tests/session/session_test.cc)
+add_executable(session_lib_test tests/session/session_test.cc)
 add_executable(server_lib_test tests/server/server_test.cc)
 add_executable(request_parser_lib_test tests/request_parser/request_parser_test.cc)
 add_executable(request_lib_test tests/request_parser/request_test.cc)
 target_link_libraries(config_parser_lib_test config_parser_lib gtest_main)
 target_link_libraries(server_utils_test server_utils gtest_main)
-# target_link_libraries(session_lib_test session_lib gtest_main gmock_main)
+target_link_libraries(session_lib_test session_lib gtest_main gmock_main)
 target_link_libraries(server_lib_test server_lib gtest_main)
 target_link_libraries(response_utils_test response_utils gtest_main)
-#consider adding gmock
 target_link_libraries(request_parser_lib_test request_parser_lib gtest_main)
 target_link_libraries(request_lib_test request_lib gtest_main)
 
@@ -84,7 +83,7 @@ add_test(NAME integration_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integr
 gtest_discover_tests(config_parser_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/config_parser)
 gtest_discover_tests(server_utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/config_parser)
 gtest_discover_tests(response_utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/utils)
-# gtest_discover_tests(session_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/session)
+gtest_discover_tests(session_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/session)
 gtest_discover_tests(server_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/server)
 gtest_discover_tests(request_parser_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/request_parser)
 gtest_discover_tests(request_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/request_parser)
@@ -92,4 +91,4 @@ gtest_discover_tests(request_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_D
 # generate coverage report
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(TARGETS server config_parser_lib server_lib session_lib request_parser_lib request_lib server_utils response_utils
-TESTS config_parser_lib_test request_parser_lib_test request_lib_test server_lib_test server_utils_test response_utils_test) # session_lib_test 
+TESTS config_parser_lib_test request_parser_lib_test request_lib_test server_lib_test server_utils_test response_utils_test session_lib_test)
