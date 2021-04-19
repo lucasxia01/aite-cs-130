@@ -1,5 +1,11 @@
 #!/bin/bash
 
+cd ../..
+mkdir build
+cd build
+cmake ..
+cd ../tests/integration
+
 # Running the server with a static config file in the background
 ../../build/bin/server ../config_parser/basic_config &
 # Storing the pid so we can kill the process later
@@ -19,6 +25,7 @@ passed=$?
 if [ $passed -ne 0 ]
 then
     echo "Failed test 1"
+    rm temp_response.txt
     kill -9 $pid
     exit 1
 fi
@@ -36,6 +43,7 @@ passed=$?
 if [ $passed -ne 0 ]
 then
     echo "Failed test 2"
+    rm temp_response.txt
     kill -9 $pid
     exit 1
 fi
@@ -58,6 +66,7 @@ passed=$?
 if [ $passed -ne 0 ]
 then
     echo "Failed test 3"
+    rm temp_response.txt
     kill -9 $pid
     exit 1
 fi
@@ -67,5 +76,6 @@ fi
 
 # Killing the process with the stored process ID
 kill -9 $pid
+rm temp_response.txt
 
 echo "Passed all integration tests"
