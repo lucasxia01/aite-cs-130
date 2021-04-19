@@ -7,16 +7,17 @@ server::server(boost::asio::io_service &io_service, short port)
   start_accept();
 }
 
-session *server::start_accept() {
+session<tcp_socket_wrapper> *server::start_accept() {
   start_accept_called++;
-  session *new_session = new session(io_service_);
-  acceptor_.async_accept(new_session->socket(),
+  session<tcp_socket_wrapper> *new_session =
+      new session<tcp_socket_wrapper>(io_service_);
+  acceptor_.async_accept((new_session->socket()).get_socket(),
                          boost::bind(&server::handle_accept, this, new_session,
                                      boost::asio::placeholders::error));
   return new_session;
 }
 
-void server::handle_accept(session *new_session,
+void server::handle_accept(session<tcp_socket_wrapper> *new_session,
                            const boost::system::error_code &error) {
   if (!error) {
     new_session->start();

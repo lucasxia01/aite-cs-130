@@ -9,7 +9,7 @@ TEST(ServerTest, callsStartAndHandle) {
   short port = 8080;
   server s(io_service, port);
   EXPECT_EQ(s.start_accept_called, 1);
-  session *sess = s.start_accept();
+  session<tcp_socket_wrapper> *sess = s.start_accept();
   s.handle_accept(sess, error);
   error = boost::asio::error::access_denied;
   s.handle_accept(sess, error);

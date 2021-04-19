@@ -1,41 +1,52 @@
 #include "session.h"
+#include "mock_socket.h"
+#include "tcp_socket_wrapper.h"
 
-session::session(boost::asio::io_service &io_service) : socket_(io_service) {}
-tcp::socket &session::socket() { return socket_; }
+template <class TSocket>
+session<TSocket>::session(boost::asio::io_service &io_service)
+    : socket_(io_service) {}
+template <class TSocket> TSocket &session<TSocket>::socket() { return socket_; }
 
-void session::start() { session::read_header(); }
-
-// Read from socket and bind read handler
-void session::read_header() {
-  memset(data_, 0, max_length);
-  socket_.async_read_some(
-      boost::asio::buffer(data_, max_length),
-      boost::bind(&session::handle_read_header, this,
-                  boost::asio::placeholders::error,
-                  boost::asio::placeholders::bytes_transferred));
+template <class TSocket> void session<TSocket>::start() {
+  session::read_header();
 }
 
-void session::read_body(size_t content_length) {
+template <class TSocket> std::string session<TSocket>::get_response_str() {
+  return request_.raw_header_str + request_.raw_body_str;
+}
+
+// Read from socket and bind read handler
+template <class TSocket> void session<TSocket>::read_header() {
+  memset(data_, 0, max_length);
+  socket_.read_some(boost::asio::buffer(data_, max_length),
+                    boost::bind(&session::handle_read_header, this,
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred));
+}
+
+template <class TSocket>
+void session<TSocket>::read_body(size_t content_length) {
   char *body_buffer = new char[content_length];
-  boost::asio::async_read(
-      socket_, boost::asio::buffer(body_buffer, content_length),
-      [this, body_buffer](const boost::system::error_code &error,
-                          size_t bytes_transferred) {
-        if (!error) {
-          // Add remainder of body into request object and echo response
-          request_.raw_body_str.append(std::string(body_buffer));
-          session::write(
-              response_utils::prepare_echo_buffer(response_utils::OK, request_));
-        } else {
-          delete this;
-        }
-        delete[] body_buffer;
-      });
+  socket_.read(boost::asio::buffer(body_buffer, content_length),
+               [this, body_buffer](const boost::system::error_code &error,
+                                   size_t bytes_transferred) {
+                 if (!error) {
+                   // Add remainder of body into request object and echo
+                   // response
+                   request_.raw_body_str.append(std::string(body_buffer));
+                   session::write(response_utils::prepare_echo_buffer(
+                       response_utils::OK, request_));
+                 } else {
+                   delete this;
+                 }
+                 delete[] body_buffer;
+               });
 }
 
 // Process data upon socket read
-void session::handle_read_header(const boost::system::error_code &error,
-                                 size_t bytes_transferred) {
+template <class TSocket>
+void session<TSocket>::handle_read_header(
+    const boost::system::error_code &error, size_t bytes_transferred) {
   if (!error) {
     // Parse header
     boost::tribool request_parse_result;
@@ -64,8 +75,8 @@ void session::handle_read_header(const boost::system::error_code &error,
         if (request_body_bytes >= content_length) {
           request_.raw_body_str.append(
               std::string(header_read_end, header_read_end + content_length));
-          session::write(
-              response_utils::prepare_echo_buffer(response_utils::OK, request_));
+          session::write(response_utils::prepare_echo_buffer(response_utils::OK,
+                                                             request_));
         } else {
           // Append the remainder of the read in data as the first part of the
           // request body Then read in the remainder of the body not included in
@@ -85,9 +96,12 @@ void session::handle_read_header(const boost::system::error_code &error,
 }
 
 // Write to socket and bind write handler
-void session::write(std::string response_str) {
-  boost::asio::async_write(
-      socket_, boost::asio::buffer(response_str.c_str(), response_str.length()),
+template <class TSocket>
+void session<TSocket>::write(std::string response_str) {
+  char *response_buffer = new char[response_str.length() + 1];
+  strcpy(response_buffer, response_str.c_str());
+  socket_.write(
+      boost::asio::buffer(response_buffer, strlen(response_buffer)),
       [this](const boost::system::error_code &error, size_t bytes_transferred) {
         if (!error) {
           request_.reset();
@@ -98,3 +112,8 @@ void session::write(std::string response_str) {
         }
       });
 }
+
+// tcp_socket_wrapper used by server.cc
+template class session<tcp_socket_wrapper>;
+// mock_socket used by session_test.cc
+template class session<mock_socket>;
