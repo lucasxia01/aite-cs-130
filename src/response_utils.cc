@@ -7,11 +7,11 @@ std::string prepare_echo_buffer(status_type status,
   std::string response_body;
   switch (status) {
   case OK:
-    response_status_message = "200 OK\0";
+    response_status_message = "200 OK";
     response_body = req.raw_header_str + req.raw_body_str;
     break;
   case BAD_REQUEST:
-    response_status_message = "400 Bad Request\0";
+    response_status_message = "400 Bad Request";
     response_body = INVALID_REQUEST_MESSAGE;
     break;
   }
