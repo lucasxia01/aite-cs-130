@@ -3,8 +3,6 @@
 namespace http {
 namespace server3 {
 
-request::request() { reset(); }
-
 void request::reset() {
   method = "";
   uri = "";

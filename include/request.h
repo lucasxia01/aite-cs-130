@@ -18,9 +18,8 @@ namespace http {
 namespace server3 {
 
 /// A request received from a client.
-class request {
+struct request {
 public:
-  request();
   std::string method;
   std::string uri;
   int http_version_major;
