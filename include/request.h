@@ -18,18 +18,25 @@ namespace http {
 namespace server3 {
 
 /// A request received from a client.
-struct request {
+class request {
+public:
+  request();
   std::string method;
   std::string uri;
   int http_version_major;
   int http_version_minor;
   std::vector<header> headers;
+  std::string raw_header_str;
+  std::string raw_body_str;
+  size_t get_content_length_header();
+  void reset();
 
   friend bool operator==(const request &l, const request &r) {
     return std::tie(l.method, l.uri, l.http_version_major, l.http_version_minor,
-                    l.headers) ==
+                    l.headers, l.raw_header_str, l.raw_body_str) ==
            std::tie(r.method, r.uri, r.http_version_major, r.http_version_minor,
-                    r.headers); // keep the same order
+                    r.headers, r.raw_header_str,
+                    r.raw_body_str); // keep the same order
   }
 };
 } // namespace server3

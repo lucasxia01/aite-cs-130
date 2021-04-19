@@ -18,22 +18,19 @@ request_parser::request_parser() : state_(method_start) {}
 
 void request_parser::reset() { state_ = method_start; }
 
-boost::tuple<boost::tribool, char *, size_t>
+boost::tuple<boost::tribool, char *>
 request_parser::parse(request &req, char *begin, char *end) {
-  // parse(request &req, InputIterator begin, InputIterator end) {
-  size_t bytes_parsed = 0;
   while (begin != end) {
-    char c = *begin++;
-    bytes_parsed++;
-    boost::tribool result = consume(req, c);
+    boost::tribool result = consume(req, *begin++);
     if (result || !result)
-      return boost::make_tuple(result, begin, bytes_parsed);
+      return boost::make_tuple(result, begin);
   }
   boost::tribool result = boost::indeterminate;
-  return boost::make_tuple(result, begin, bytes_parsed);
+  return boost::make_tuple(result, begin);
 }
 
 boost::tribool request_parser::consume(request &req, char input) {
+  req.raw_header_str.push_back(input);
   switch (state_) {
   case method_start:
     if (!is_char(input) || is_ctl(input) || is_tspecial(input)) {

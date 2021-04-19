@@ -33,10 +33,8 @@ public:
   /// has been parsed, false if the data is invalid, indeterminate when more
   /// data is required. The InputIterator return value indicates how much of the
   /// input has been consumed.
-  // template <typename InputIterator>
-  // boost::tuple<boost::tribool, InputIterator, size_t>
-  virtual boost::tuple<boost::tribool, char *, size_t>
-  parse(request &req, char *begin, char *end);
+  virtual boost::tuple<boost::tribool, char *> parse(request &req, char *begin,
+                                                     char *end);
 
   /// Handle the next character of input.
   boost::tribool consume(request &req, char input);
