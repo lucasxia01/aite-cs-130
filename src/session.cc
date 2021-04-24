@@ -8,6 +8,7 @@ session<TSocket>::session(boost::asio::io_service &io_service)
 template <class TSocket> TSocket &session<TSocket>::socket() { return socket_; }
 
 template <class TSocket> void session<TSocket>::start() {
+  LOG_DEBUG << socket_.get_endpoint_address() << ": Starting session";
   session::read_header();
 }
 
@@ -17,6 +18,7 @@ template <class TSocket> std::string session<TSocket>::get_response_str() {
 
 // Read from socket and bind read handler
 template <class TSocket> void session<TSocket>::read_header() {
+  LOG_DEBUG << socket_.get_endpoint_address() << ": Reading header";
   memset(data_, 0, max_length);
   socket_.read_some(boost::asio::buffer(data_, max_length),
                     boost::bind(&session::handle_read_header, this,
@@ -26,6 +28,8 @@ template <class TSocket> void session<TSocket>::read_header() {
 
 template <class TSocket>
 void session<TSocket>::read_body(size_t content_length) {
+  LOG_DEBUG << socket_.get_endpoint_address() << ": Reading body of length "
+            << content_length;
   char *body_buffer = new char[content_length];
   socket_.read(boost::asio::buffer(body_buffer, content_length),
                [this, body_buffer](const boost::system::error_code &error,
@@ -37,6 +41,8 @@ void session<TSocket>::read_body(size_t content_length) {
                    session::write(response_utils::prepare_echo_buffer(
                        response_utils::OK, request_));
                  } else {
+                   LOG_ERROR << socket_.get_endpoint_address()
+                             << ": Error in read body:" << error.message();
                    delete this;
                  }
                  delete[] body_buffer;
@@ -58,9 +64,12 @@ void session<TSocket>::handle_read_header(
     if (!request_parse_result || content_length < 0) {
       // Invalid request headers or invalid Content-Length
       // Send back INVALID_REQUEST_MESSAGE
+      LOG_DEBUG << socket_.get_endpoint_address() << ": Bad request header";
       session::write(response_utils::prepare_echo_buffer(
           response_utils::BAD_REQUEST, request_));
     } else if (request_parse_result) {
+      LOG_DEBUG << socket_.get_endpoint_address()
+                << ": Finished reading header";
       // Valid header parsed
       if (content_length == 0) {
         // If header does not contain content-length, there's no body so just
@@ -87,10 +96,13 @@ void session<TSocket>::handle_read_header(
         }
       }
     } else {
+      LOG_DEBUG << socket_.get_endpoint_address() << ": Read remaining header";
       // Handle another read;
       session::read_header();
     }
   } else {
+    LOG_ERROR << socket_.get_endpoint_address()
+              << ": Error in read header: " << error.message();
     delete this;
   }
 }
@@ -98,16 +110,23 @@ void session<TSocket>::handle_read_header(
 // Write to socket and bind write handler
 template <class TSocket>
 void session<TSocket>::write(std::string response_str) {
+  LOG_DEBUG << socket_.get_endpoint_address()
+            << ": Starting write to socket, response length "
+            << response_str.length();
   char *response_buffer = new char[response_str.length() + 1];
   strcpy(response_buffer, response_str.c_str());
   socket_.write(
       boost::asio::buffer(response_buffer, strlen(response_buffer)),
       [this](const boost::system::error_code &error, size_t bytes_transferred) {
         if (!error) {
+          LOG_DEBUG << socket_.get_endpoint_address()
+                    << ": Completed write. Preparing for next request";
           request_.reset();
           request_parser_.reset();
           read_header();
         } else {
+          LOG_ERROR << socket_.get_endpoint_address()
+                    << ": Error writing to socket: " << error.message();
           delete this;
         }
       });

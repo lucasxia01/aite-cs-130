@@ -1,6 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
+#include "logger.h"
 #include <request.h>
 #include <request_parser.h>
 #include <response_utils.h>

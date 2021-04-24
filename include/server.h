@@ -1,5 +1,6 @@
 #include "session.h"
 #include "tcp_socket_wrapper.h"
+#include "logger.h"
 
 class server {
 public:

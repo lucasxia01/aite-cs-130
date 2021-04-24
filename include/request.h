@@ -12,8 +12,8 @@
 #define HTTP_SERVER3_REQUEST_H
 
 #include "header.h"
+#include "logger.h"
 #include <vector>
-
 namespace http {
 namespace server3 {
 

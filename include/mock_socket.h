@@ -31,7 +31,8 @@ public:
       boost::asio::mutable_buffer buf,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
     std::string to_transfer = fake_input_buffer.substr(0, buf.size());
-    memcpy(boost::asio::buffer_cast<char *>(buf), to_transfer.c_str(), to_transfer.length());
+    memcpy(boost::asio::buffer_cast<char *>(buf), to_transfer.c_str(),
+           to_transfer.length());
     myFunc(make_error_code(boost::system::errc::success), to_transfer.length());
   }
 
@@ -47,6 +48,8 @@ public:
   void set_input_buffer(std::string buf) { fake_input_buffer = buf; }
 
   std::string get_output_buffer() { return fake_output_buffer; }
+
+  std::string get_endpoint_address() { return "1.2.3.4"; }
 
 private:
   std::string fake_input_buffer;
