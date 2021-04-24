@@ -10,7 +10,6 @@ int ParsePortNumber(const char *file_name) {
   std::string field_name = "port";
   std::string field_value =
       config_parser.configLookup(config, block_names, field_name);
-  std::cerr << field_value << '\n';
   // we did not find a port number
   if (field_value == "")
     return -1;

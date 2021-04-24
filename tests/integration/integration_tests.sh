@@ -1,14 +1,14 @@
 #!/bin/bash
-
+echo "STARTING INTEGRATION TESTS"
 # Running the server with a static config file in the background
-../../build/bin/server ../config_parser/basic_config &
+../../build/bin/server ../config_parser/basic_config 2> integration.log &
 # Storing the pid so we can kill the process later
-pid=$!
-
+server_proc=$(pgrep server)
+server=$(pgrep server)
 ##### TEST 1: curl GET request #####
 # Sending a request to the server and storing the response
-curl localhost:8080 -v -o temp_response.txt -s -S
-
+echo "STARTING TEST 1"
+curl localhost:8080 -o temp_response.txt -s -S
 # Diffing the response file with the correct response for test 1
 diff temp_response.txt correct_integration_test_1.txt
 
@@ -18,14 +18,16 @@ passed=$?
 # Checking the exit code and exiting if necessary
 if [ $passed -ne 0 ]
 then
-    echo "Failed test 1"
+    echo "FAILED TEST 1"
     rm temp_response.txt
-    kill -9 $pid
+    kill -9 $server_proc
+    kill -9 $server
     exit 1
 fi
-
+echo "PASSED TEST 1"
 ##### TEST 2: Random nc that fails #####
 # Specifying the test string that will be echoed
+echo "STARTING TEST 2"
 test_string="please fail" 
 
 # Getting the response and diffing it
@@ -36,13 +38,16 @@ passed=$?
 
 if [ $passed -ne 0 ]
 then
-    echo "Failed test 2"
+    echo "FAILED TEST 2"
     rm temp_response.txt
-    kill -9 $pid
+    kill -9 $server_proc
+    kill -9 $server
     exit 1
 fi
+echo "PASSED TEST 2"
 
 ##### TEST 3: Random nc that should pass #####
+echo "STARTING TEST 3"
 # Creating the expected response
 response_headers_prefix="HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: "
 # Specifying the test string that will be echoed
@@ -59,17 +64,28 @@ passed=$?
 
 if [ $passed -ne 0 ]
 then
-    echo "Failed test 3"
+    echo "FAILED TEST 3"
     rm temp_response.txt
-    kill -9 $pid
+    kill -9 $server_proc
+    kill -9 $server
+    exit 1
+fi
+echo "PASSED TEST 3"
+
+# Killing the process with the stored process ID
+kill -9 $server
+rm temp_response.txt
+
+info_log_count=$(cat integration.log | grep "\[info\]" | wc -l)
+
+# Remove all generated log files
+rm *.log
+
+if [ $info_log_count -ne 1 ]
+then
+    echo "Invalid info log count"
     exit 1
 fi
 
-# TODO: better format of test cases
-
-
-# Killing the process with the stored process ID
-kill -9 $pid
-rm temp_response.txt
-
 echo "Passed all integration tests"
+exit 0

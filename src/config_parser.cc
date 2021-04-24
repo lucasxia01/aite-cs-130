@@ -7,6 +7,8 @@
 // How Nginx does it:
 //   http://lxr.nginx.org/source/src/core/ngx_conf_file.c
 #include "config_parser.h"
+#include "logger.h"
+
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -14,7 +16,6 @@
 #include <stack>
 #include <string>
 #include <vector>
-
 const char *NginxConfigParser::TokenTypeAsString(TokenType type) {
   switch (type) {
   case TOKEN_TYPE_START:
@@ -232,7 +233,6 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config) {
     }
     std::string token;
     token_type = ParseToken(config_file, &token);
-    printf("%s: %s\n", TokenTypeAsString(token_type), token.c_str());
     if (token_type == TOKEN_TYPE_ERROR) {
       break;
     }
@@ -312,15 +312,15 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config) {
     }
     last_token_type = token_type;
   }
-  printf("Bad transition from %s to %s\n", TokenTypeAsString(last_token_type),
-         TokenTypeAsString(token_type));
+  LOG_ERROR << "Bad transition from " << TokenTypeAsString(last_token_type)
+            << " to " << TokenTypeAsString(token_type);
   return false;
 }
 bool NginxConfigParser::Parse(const char *file_name, NginxConfig *config) {
   std::ifstream config_file;
   config_file.open(file_name);
   if (!config_file.good()) {
-    printf("Failed to open config file: %s\n", file_name);
+    LOG_ERROR << "Failed to open config file: " << file_name;
     return false;
   }
   const bool return_value =

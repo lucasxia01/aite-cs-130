@@ -10,15 +10,17 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <logger.h>
 #include <vector>
 
 #include "server.h"
 #include "server_utils.h"
 
 int main(int argc, char *argv[]) {
+  Logger::init();
   try {
     if (argc != 2) {
-      std::cerr << "Usage: async_tcp_echo_server <port>\n";
+      LOG_FATAL << "Usage: server <path_to_config_file>";
       return 1;
     }
 
@@ -26,15 +28,15 @@ int main(int argc, char *argv[]) {
 
     int port_num = ParsePortNumber(argv[1]);
     if (port_num == -1) {
-      std::cerr << "Could not parse a port number from config file\n";
+      LOG_FATAL << "Could not parse a port number from config file";
       return 2;
     }
-    printf("Parsed port number %d\n", port_num);
+    LOG_INFO << "Successfully parsed port number: " << port_num;
     server s(io_service, port_num);
 
     io_service.run();
   } catch (std::exception &e) {
-    std::cerr << "Exception: " << e.what() << "\n";
+    LOG_ERROR << "Exception: " << e.what();
   }
 
   return 0;

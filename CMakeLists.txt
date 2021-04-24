@@ -29,7 +29,7 @@ add_subdirectory(/usr/src/googletest googletest)
 # Enable Boost
 # Use static libraries so binaries can be deployed without a full boost install
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.50 REQUIRED COMPONENTS system)
+find_package(Boost 1.50 REQUIRED COMPONENTS system log_setup log)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
 # Including custom cmake rules, code from https://www.labri.fr/perso/fleury/posts/programming/using-clang-tidy-and-clang-format.html
@@ -45,21 +45,26 @@ add_library(request_parser_lib src/request_parser.cc)
 add_library(request_lib src/request.cc)
 add_library(response_utils src/response_utils.cc)
 add_library(server_utils src/server_utils.cc)
+add_library(logger_lib src/logger.cc)
 
 # add session_lib dependency on request_parser, request, and response_utils libs
 target_link_libraries(session_lib request_parser_lib request_lib response_utils)
 
+target_link_libraries(logger_lib Boost::log_setup Boost::log)
+
+target_link_libraries(config_parser_lib logger_lib)
+
+# add config_parser dependency on server_utils
+target_link_libraries(server_utils config_parser_lib)
+
 # add server_lib dependency on session_lib
 target_link_libraries(server_lib session_lib server_utils)
-
-# add config_parser dependency on config_semantics
-target_link_libraries(server_utils config_parser_lib)
 
 # Creates executable
 add_executable(server src/server_main.cc)
 
 # Link relevant libraries
-target_link_libraries(server Boost::system pthread server_lib)
+target_link_libraries(server Boost::system pthread server_lib logger_lib)
 
 # Create test executable name, srcs, and deps
 add_executable(config_parser_lib_test tests/config_parser/config_parser_test.cc)
