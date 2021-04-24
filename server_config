@@ -1,3 +1,20 @@
+
 server {
-    port 80; 
+    random garbage;
+    foo bar;
+    set partitions;
+    generating functions;
+    pavel galashin;
+    math 184;
+    
+    port 8080;
+    
+    echo {
+        root /echo /echo2 /echo3;
+    }
+
+    static {
+        root /static /static1;
+        path /foo/bar /foob/ar;
+    }
 }

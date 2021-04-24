@@ -29,14 +29,6 @@ public:
   std::string raw_body_str;
   size_t get_content_length_header();
   void reset();
-
-  friend bool operator==(const request &l, const request &r) {
-    return std::tie(l.method, l.uri, l.http_version_major, l.http_version_minor,
-                    l.headers, l.raw_header_str, l.raw_body_str) ==
-           std::tie(r.method, r.uri, r.http_version_major, r.http_version_minor,
-                    r.headers, r.raw_header_str,
-                    r.raw_body_str); // keep the same order
-  }
 };
 } // namespace server3
 } // namespace http

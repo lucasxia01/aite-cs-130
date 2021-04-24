@@ -25,9 +25,6 @@ public:
   // iff the input config file is valid.
   bool Parse(std::istream *config_file, NginxConfig *config);
   bool Parse(const char *file_name, NginxConfig *config);
-  std::string configLookup(NginxConfig &config,
-                           std::vector<std::string> block_names,
-                           std::string field_name);
 
 private:
   enum TokenType {

@@ -41,47 +41,6 @@ const char *NginxConfigParser::TokenTypeAsString(TokenType type) {
   }
 }
 
-std::string
-NginxConfigParser::configLookup(NginxConfig &config,
-                                std::vector<std::string> block_names,
-                                std::string field_name) {
-  int len = block_names.size();
-  if (len == 0) {
-    // look for field name
-    for (const auto &statement : config.statements_) {
-      // if its a block, it can't be a field
-      if (statement->child_block_)
-        continue;
-      std::vector<std::string> tokens = statement->tokens_;
-      if (tokens.size() >= 1 && tokens[0] == field_name) {
-        std::string field_value = "";
-        for (unsigned int i = 1; i < tokens.size(); ++i) {
-          field_value.append(tokens[i]);
-          if (i != 1) {
-            field_value.append(" ");
-          }
-        }
-        return field_value;
-      }
-    }
-    return "";
-  }
-  // else we have to look through more layers of blocks
-  for (const auto &statement : config.statements_) {
-    // check if its a block
-    if (statement->child_block_) {
-      std::vector<std::string> tokens = statement->tokens_;
-      // if it matches current block name, we want to recurse into it
-      if (tokens.size() > 0 && tokens[0] == block_names[0]) {
-        block_names.erase(block_names.begin());
-        return NginxConfigParser::configLookup(*statement->child_block_,
-                                               block_names, field_name);
-      }
-    }
-  }
-  return "";
-}
-
 NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream *input,
                                                            std::string *value) {
   TokenParserState state = TOKEN_STATE_INITIAL_WHITESPACE;

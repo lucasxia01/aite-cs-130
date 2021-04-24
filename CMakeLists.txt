@@ -46,21 +46,24 @@ add_library(request_lib src/request.cc)
 add_library(response_utils src/response_utils.cc)
 add_library(server_utils src/server_utils.cc)
 add_library(logger_lib src/logger.cc)
+add_library(request_handler_lib src/request_handler.cc)
 
 # Add logger dependencies
 target_link_libraries(request_lib logger_lib)
 target_link_libraries(config_parser_lib logger_lib)
 
-# add session_lib dependency on request_parser, request, and response_utils libs (indirectly linked with logger)
-target_link_libraries(session_lib request_parser_lib request_lib response_utils)
+# add session_lib dependency on request_parser, request, and request_handler_lib libs (indirectly linked with logger)
+target_link_libraries(session_lib request_parser_lib request_lib request_handler_lib)
 
 target_link_libraries(logger_lib Boost::log_setup Boost::log)
+
+target_link_libraries(server_lib session_lib server_utils request_handler_lib)
 
 # add config_parser dependency on server_utils
 target_link_libraries(server_utils config_parser_lib)
 
-# add server_lib dependency on session_lib
-target_link_libraries(server_lib session_lib server_utils)
+# add config_parser dependency on request_handler_lib
+target_link_libraries(request_handler_lib config_parser_lib)
 
 # Creates executable
 add_executable(server src/server_main.cc)

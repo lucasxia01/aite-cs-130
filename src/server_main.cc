@@ -24,15 +24,17 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     boost::asio::io_service io_service;
-    LOG_DEBUG << "Attempting to parse port number";
-    int port_num = ParsePortNumber(argv[1]);
-    if (port_num == -1) {
-      LOG_FATAL << "Could not parse a port number from config file";
-      return 2;
-    }
-    LOG_DEBUG << "Parsed port number: " << port_num;
-    server s(io_service, port_num);
+
+    int port_num;
+    std::set<std::string> echo_roots;
+    std::map<std::string, std::string> root_to_base_dir;
+    LOG_DEBUG << "Attempting to parse config file";
+    parseConfigFile(argv[1], port_num, echo_roots, root_to_base_dir);
+
+    LOG_INFO << "Successfully parsed port number: " << port_num;
+    server s(io_service, port_num, echo_roots, root_to_base_dir);
     LOG_INFO << "Running server on port number: " << port_num;
+
     io_service.run();
   } catch (std::exception &e) {
     LOG_ERROR << "Exception: " << e.what();
