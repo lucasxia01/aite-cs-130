@@ -5,10 +5,13 @@ response response::getStockResponse(status_type status) {
   switch (status) {
   case OK:
     response_body = "";
+    break;
   case BAD_REQUEST:
     response_body = "Invalid request\n";
+    break;
   case NOT_FOUND:
-    return "File not found\n";
+    response_body = "File not found\n";
+    break;
   }
   response resp;
   resp.status = status;
