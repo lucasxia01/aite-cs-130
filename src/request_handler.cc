@@ -1,6 +1,5 @@
 #include "request_handler.h"
-#include <map>
-#include <string>
+#include <algorithm>
 
 response
 EchoRequestHandler::generateResponse(response::status_type status,
@@ -15,10 +14,26 @@ EchoRequestHandler::generateResponse(response::status_type status,
   return resp;
 }
 
+bool EchoRequestHandler::getRoot(std::string uri, std::string &root) {
+  boost::filesystem::path p(uri);
+  root = p.string();
+
+  while (p.has_parent_path()) {
+    if (roots.find(p.string()) != roots.end()) {
+      root = p.string();
+      return true;
+    }
+    p = p.parent_path();
+  }
+
+  return false;
+}
+
 response
 StaticFileRequestHandler::generateResponse(response::status_type status,
                                            const http::server3::request &req) {
   std::string root, path, content_type;
+  StaticFileRequestHandler::getRoot(req.uri, root);
   StaticFileRequestHandler::parseUri(req.uri, root, path, content_type);
 
   std::ifstream ifs(path, std::ifstream::in);
@@ -42,23 +57,38 @@ StaticFileRequestHandler::generateResponse(response::status_type status,
   return resp;
 }
 
-void StaticFileRequestHandler::parseUri(std::string uri, std::string &root,
+bool StaticFileRequestHandler::getRoot(std::string uri, std::string &root) {
+  boost::filesystem::path p(uri);
+  root = p.string();
+
+  while (p.has_parent_path()) {
+    if (root_to_base_dir.find(p.string()) != root_to_base_dir.end()) {
+      root = p.string();
+      return true;
+    }
+    p = p.parent_path();
+  }
+
+  return false;
+}
+
+void StaticFileRequestHandler::parseUri(std::string uri, std::string root,
                                         std::string &path,
                                         std::string &content_type) {
-  size_t pos = uri.find("/", 1);
-  root = uri.substr(0, pos);
-  path = root_to_base_dir[root] + uri.substr(pos);
+  boost::filesystem::path p(uri), root_path(root);
+  std::string file_extension = p.extension().string();
+  path = root_to_base_dir[root] +
+         boost::filesystem::relative(p, root_path).string();
 
-  std::string file_extension = uri.substr(uri.rfind(".") + 1);
-  if (file_extension == "txt")
+  if (file_extension == ".txt")
     content_type = "text/plain";
-  else if (file_extension == "html")
+  else if (file_extension == ".html")
     content_type = "text/html";
-  else if (file_extension == "jpeg")
+  else if (file_extension == ".jpeg")
     content_type = "image/jpeg";
-  else if (file_extension == "png")
+  else if (file_extension == ".png")
     content_type = "image/png";
-  else if (file_extension == "zip")
+  else if (file_extension == ".zip")
     content_type = "application/zip";
   else
     content_type = "text/plain";

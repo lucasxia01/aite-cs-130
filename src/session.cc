@@ -129,19 +129,21 @@ void session<TSocket>::handle_read_header(
 
 template <class TSocket>
 RequestHandler *session<TSocket>::getRequestHandler(std::string requestUri) {
-  std::string root = requestUri.substr(0, requestUri.find("/", 1));
-
-  bool is_echo_root = echo_request_handler_.containsRoot(root);
-  bool is_static_file_root = static_file_request_handler_.containsRoot(root);
+  std::string echo_root, static_file_root;
+  bool is_echo_root = echo_request_handler_.getRoot(requestUri, echo_root);
+  bool is_static_file_root =
+      static_file_request_handler_.getRoot(requestUri, static_file_root);
   if (is_echo_root && is_static_file_root) {
-    LOG_DEBUG << "Root \"" << root << "\" is both echo and static file root\n";
+    LOG_DEBUG << "Root \"" << echo_root
+              << "\" is both echo and static file root\n";
     return nullptr;
   } else if (is_echo_root) {
     return &echo_request_handler_;
   } else if (is_static_file_root) {
     return &static_file_request_handler_;
   } else {
-    LOG_DEBUG << "Root \"" << root << "\" is neither echo or static file root\n";
+    LOG_DEBUG << "Root \"" << echo_root
+              << "\" is neither echo or static file root\n";
     return nullptr;
   }
 }
