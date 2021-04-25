@@ -9,14 +9,20 @@
 class SessionTest : public testing::Test {
   std::set<std::string> echo_roots = {"/path"};
   std::map<std::string, std::string> root_to_base_dir = {{"/static", "/"}};
+
 protected:
   boost::asio::io_service io_service;
   EchoRequestHandler echo_request_handler;
   StaticFileRequestHandler static_file_request_handler;
   boost::system::error_code error;
   session<mock_socket> *testSess;
-  SessionTest() : echo_request_handler(echo_roots), static_file_request_handler(root_to_base_dir) {}
-  void SetUp(void) { testSess = new session<mock_socket>(io_service, echo_request_handler, static_file_request_handler); }
+  SessionTest()
+      : echo_request_handler(echo_roots),
+        static_file_request_handler(root_to_base_dir) {}
+  void SetUp(void) {
+    testSess = new session<mock_socket>(io_service, echo_request_handler,
+                                        static_file_request_handler);
+  }
   void TearDown(void) { delete testSess; }
 };
 

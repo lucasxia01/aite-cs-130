@@ -31,8 +31,8 @@ TEST_F(ServerUtilsTest, TwoBlockDeepPortLookup) {
 
 TEST_F(ServerUtilsTest, ThreeBlockDeepPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
-  std::vector<std::string> block_names = {"server", "garbage", "deepergarbage"}; 
-  std::string field_name = "port"; 
+  std::vector<std::string> block_names = {"server", "garbage", "deepergarbage"};
+  std::string field_name = "port";
   std::vector<std::string> field_values =
       configLookup(out_config, block_names, field_name);
   EXPECT_EQ(field_values.size(), 1);

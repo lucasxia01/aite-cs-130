@@ -9,7 +9,7 @@ server=$(pgrep server)
 ##### TEST 1: curl GET request #####
 # Sending a request to the server and storing the response
 echo "STARTING TEST 1"
-curl localhost:8080 -o test_output/temp_response.txt -s -S
+curl localhost:8080/echo -o test_output/temp_response.txt -s -S
 # Diffing the response file with the correct response for test 1
 diff test_output/temp_response.txt correct_integration_test_1.txt
 

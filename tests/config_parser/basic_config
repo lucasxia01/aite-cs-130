@@ -3,6 +3,15 @@ server {
   port  8080;
   server_name foo.com;
 
+  echo {
+    root /echo;
+  }
+
+  static {
+    root /static;
+    path /usr/src/projects/aite/;
+  }
+
   stupid {
     port  80;
     server_name foo.com;

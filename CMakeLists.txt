@@ -43,6 +43,7 @@ add_library(session_lib src/session.cc)
 add_library(config_parser_lib src/config_parser.cc)
 add_library(request_parser_lib src/request_parser.cc)
 add_library(request_lib src/request.cc)
+add_library(response_lib src/response.cc)
 add_library(response_utils src/response_utils.cc)
 add_library(server_utils src/server_utils.cc)
 add_library(logger_lib src/logger.cc)
@@ -53,7 +54,7 @@ target_link_libraries(request_lib logger_lib)
 target_link_libraries(config_parser_lib logger_lib)
 
 # add session_lib dependency on request_parser, request, and request_handler_lib libs (indirectly linked with logger)
-target_link_libraries(session_lib request_parser_lib request_lib request_handler_lib)
+target_link_libraries(session_lib request_parser_lib request_lib response_lib request_handler_lib)
 
 target_link_libraries(logger_lib Boost::log_setup Boost::log)
 

@@ -15,6 +15,6 @@ server {
 
     static {
         root /static /static1;
-        path /foo/bar /foob/ar;
+        path /usr/src/projects/aite/ /foob/ar;
     }
 }
