@@ -7,6 +7,8 @@ response response::getStockResponse(status_type status) {
     response_body = "";
   case BAD_REQUEST:
     response_body = "Invalid request\n";
+  case NOT_FOUND:
+    return "File not found\n";
   }
   response resp;
   resp.status = status;
@@ -33,5 +35,7 @@ std::string response::getStatusString(status_type status) {
     return "200 OK";
   case BAD_REQUEST:
     return "400 Bad Request";
+  case NOT_FOUND:
+    return "404 Not Found";
   }
 }

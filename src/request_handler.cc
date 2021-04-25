@@ -38,7 +38,7 @@ StaticFileRequestHandler::generateResponse(response::status_type status,
 
   std::ifstream ifs(path, std::ifstream::in);
   if (ifs.fail())
-    return response::getStockResponse(response::BAD_REQUEST);
+    return response::getStockResponse(response::NOT_FOUND);
 
   char c = ifs.get();
   std::stringstream ss;
