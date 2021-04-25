@@ -127,6 +127,11 @@ void session<TSocket>::handle_read_header(
   }
 }
 
+/**
+ * Get the appropriate request handler (echo or static file) based on the
+ * request URI. If neither valid echo nor valid static file roots are found,
+ * return null.
+ **/
 template <class TSocket>
 RequestHandler *session<TSocket>::getRequestHandler(std::string requestUri) {
   std::string echo_root, static_file_root;

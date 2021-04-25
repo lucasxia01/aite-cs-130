@@ -14,10 +14,16 @@ EchoRequestHandler::generateResponse(response::status_type status,
   return resp;
 }
 
+/**
+ * Check if uri is a valid path containing a valid static file root, and if so
+ * return true and set root to the parsed value
+ **/
 bool EchoRequestHandler::getRoot(std::string uri, std::string &root) {
   boost::filesystem::path p(uri);
   root = p.string();
 
+  // look through all path prefixes and check if any match a valid root
+  // prioritizing longest path prefix
   while (p.has_parent_path()) {
     if (roots.find(p.string()) != roots.end()) {
       root = p.string();
@@ -57,10 +63,16 @@ StaticFileRequestHandler::generateResponse(response::status_type status,
   return resp;
 }
 
+/**
+ * Check if uri is a valid path containing a valid static file root, and if so
+ * return true and set root to the parsed value
+ **/
 bool StaticFileRequestHandler::getRoot(std::string uri, std::string &root) {
   boost::filesystem::path p(uri);
   root = p.string();
 
+  // look through all path prefixes and check if any match a valid root
+  // prioritizing longest path prefix
   while (p.has_parent_path()) {
     if (root_to_base_dir.find(p.string()) != root_to_base_dir.end()) {
       root = p.string();
@@ -72,6 +84,9 @@ bool StaticFileRequestHandler::getRoot(std::string uri, std::string &root) {
   return false;
 }
 
+/**
+ * Get relative file path and HTML content type of requested file
+ **/
 void StaticFileRequestHandler::parseUri(std::string uri, std::string root,
                                         std::string &path,
                                         std::string &content_type) {
