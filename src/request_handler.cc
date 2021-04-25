@@ -2,8 +2,8 @@
 #include <algorithm>
 
 response
-EchoRequestHandler::generateResponse(response::status_type status,
-                                     const http::server3::request &req) {
+EchoRequestHandler::generate_response(response::status_type status,
+                                      const http::server3::request &req) {
   std::string response_body = req.raw_header_str + req.raw_body_str;
   response resp;
   resp.status = response::OK;
@@ -18,7 +18,7 @@ EchoRequestHandler::generateResponse(response::status_type status,
  * Check if uri is a valid path containing a valid static file root, and if so
  * return true and set root to the parsed value
  **/
-bool EchoRequestHandler::getRoot(std::string uri, std::string &root) {
+bool EchoRequestHandler::get_root(std::string uri, std::string &root) {
   boost::filesystem::path p(uri);
   root = p.string();
 
@@ -36,15 +36,15 @@ bool EchoRequestHandler::getRoot(std::string uri, std::string &root) {
 }
 
 response
-StaticFileRequestHandler::generateResponse(response::status_type status,
-                                           const http::server3::request &req) {
+StaticFileRequestHandler::generate_response(response::status_type status,
+                                            const http::server3::request &req) {
   std::string root, path, content_type;
-  StaticFileRequestHandler::getRoot(req.uri, root);
-  StaticFileRequestHandler::parseUri(req.uri, root, path, content_type);
+  StaticFileRequestHandler::get_root(req.uri, root);
+  StaticFileRequestHandler::parse_uri(req.uri, root, path, content_type);
 
   std::ifstream ifs(path, std::ifstream::in);
   if (ifs.fail())
-    return response::getStockResponse(response::NOT_FOUND);
+    return response::get_stock_response(response::NOT_FOUND);
 
   char c = ifs.get();
   std::stringstream ss;
@@ -67,7 +67,7 @@ StaticFileRequestHandler::generateResponse(response::status_type status,
  * Check if uri is a valid path containing a valid static file root, and if so
  * return true and set root to the parsed value
  **/
-bool StaticFileRequestHandler::getRoot(std::string uri, std::string &root) {
+bool StaticFileRequestHandler::get_root(std::string uri, std::string &root) {
   boost::filesystem::path p(uri);
   root = p.string();
 
@@ -87,9 +87,9 @@ bool StaticFileRequestHandler::getRoot(std::string uri, std::string &root) {
 /**
  * Get relative file path and HTML content type of requested file
  **/
-void StaticFileRequestHandler::parseUri(std::string uri, std::string root,
-                                        std::string &path,
-                                        std::string &content_type) {
+void StaticFileRequestHandler::parse_uri(std::string uri, std::string root,
+                                         std::string &path,
+                                         std::string &content_type) {
   boost::filesystem::path p(uri), root_path(root);
   std::string file_extension = p.extension().string();
   path = root_to_base_dir[root] +

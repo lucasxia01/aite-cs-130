@@ -1,3 +1,6 @@
+#ifndef REQUEST_HANDLER_H
+#define REQUEST_HANDLER_H
+
 #include "response.h"
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -13,10 +16,10 @@ protected:
 
 public:
   RequestHandler() {}
-  virtual response generateResponse(response::status_type status,
+  virtual response generate_response(response::status_type status,
                                     const http::server3::request &req) = 0;
 
-  static void parseUri(std::string uri);
+  static void parse_uri(std::string uri);
 };
 
 class EchoRequestHandler : public RequestHandler {
@@ -24,8 +27,8 @@ class EchoRequestHandler : public RequestHandler {
 
 public:
   EchoRequestHandler(std::set<std::string> roots) : roots(roots) {}
-  bool getRoot(std::string uri, std::string &root);
-  response generateResponse(response::status_type status,
+  bool get_root(std::string uri, std::string &root);
+  response generate_response(response::status_type status,
                             const http::server3::request &req);
 };
 
@@ -34,13 +37,15 @@ class StaticFileRequestHandler : public RequestHandler {
 public:
   StaticFileRequestHandler(std::map<std::string, std::string> root_to_base_dir)
       : root_to_base_dir(root_to_base_dir) {}
-  bool getRoot(std::string uri, std::string &root);
-  response generateResponse(response::status_type status,
+  bool get_root(std::string uri, std::string &root);
+  response generate_response(response::status_type status,
                             const http::server3::request &req);
 
 private:
   std::map<std::string, std::string> root_to_base_dir;
 
-  void parseUri(std::string uri, std::string root, std::string &path,
+  void parse_uri(std::string uri, std::string root, std::string &path,
                 std::string &content_type);
 };
+
+#endif // REQUEST_HANDLER_H

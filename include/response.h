@@ -1,3 +1,6 @@
+#ifndef RESPONSE_H
+#define RESPONSE_H
+
 #include "header.h"
 #include <sstream>
 #include <string>
@@ -9,7 +12,9 @@ struct response {
   std::vector<http::server3::header> headers;
   std::string body;
 
-  static response getStockResponse(status_type);
-  static std::string getStatusString(status_type);
-  std::string toString();
+  static response get_stock_response(status_type);
+  static std::string get_status_string(status_type);
+  std::string to_string();
 };
+
+#endif // RESPONSE_H

@@ -1,3 +1,6 @@
+#ifndef SERVER_UTILS_H
+#define SERVER_UTILS_H
+
 #include "config_parser.h"
 #include <map>
 #include <set>
@@ -12,3 +15,5 @@ std::map<std::string, std::string> getRootToBaseDirMapping(NginxConfig config);
 bool parseConfigFile(const char *file_name, int &port,
                      std::set<std::string> &echo_roots,
                      std::map<std::string, std::string> &root_to_base_dir);
+
+#endif // SERVER_UTILS_H

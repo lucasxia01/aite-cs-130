@@ -1,3 +1,6 @@
+#ifndef TCP_SOCKET_WRAPPER_H
+#define TCP_SOCKET_WRAPPER_H
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
@@ -40,3 +43,5 @@ public:
 private:
   boost::asio::ip::tcp::socket socket_;
 };
+
+#endif // TCP_SOCKET_WRAPPER_H

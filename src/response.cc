@@ -1,6 +1,6 @@
 #include "response.h"
 
-response response::getStockResponse(status_type status) {
+response response::get_stock_response(status_type status) {
   std::string response_body;
   switch (status) {
   case OK:
@@ -22,9 +22,9 @@ response response::getStockResponse(status_type status) {
   return resp;
 }
 
-std::string response::toString() {
+std::string response::to_string() {
   std::stringstream ss;
-  ss << "HTTP/1.1 " << response::getStatusString(status) << "\r\n";
+  ss << "HTTP/1.1 " << response::get_status_string(status) << "\r\n";
   for (auto &h : headers) {
     ss << h.name << ": " << h.value << "\r\n";
   }
@@ -32,7 +32,7 @@ std::string response::toString() {
   return ss.str();
 }
 
-std::string response::getStatusString(status_type status) {
+std::string response::get_status_string(status_type status) {
   switch (status) {
   case OK:
     return "200 OK";

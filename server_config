@@ -1,12 +1,5 @@
 
 server {
-    random garbage;
-    foo bar;
-    set partitions;
-    generating functions;
-    pavel galashin;
-    math 184;
-    
     port 8080;
     
     echo {

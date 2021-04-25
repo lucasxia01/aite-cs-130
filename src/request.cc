@@ -19,7 +19,6 @@ size_t request::get_content_length_header() {
       try {
         return stoi(h.value);
       } catch (...) {
-        LOG_ERROR << "Invalid content length: " << h.value;
         return -1;
       }
     }

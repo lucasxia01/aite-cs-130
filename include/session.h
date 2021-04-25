@@ -1,3 +1,6 @@
+#ifndef SESSION_H
+#define SESSION_H
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
@@ -5,7 +8,8 @@
 #include "request.h"
 #include "request_handler.h"
 #include "request_parser.h"
-#include "response_utils.h"
+#include "response.h"
+
 #include <vector>
 
 using boost::asio::ip::tcp;
@@ -32,7 +36,7 @@ private:
   void handle_read_header(const boost::system::error_code &error,
                           size_t bytes_transferred);
 
-  RequestHandler *getRequestHandler(std::string requestUri);
+  RequestHandler *get_request_handler(std::string requestUri);
 
   TSocket socket_;
   http::server3::request_parser request_parser_;
@@ -46,3 +50,5 @@ private:
   enum { max_length = 1024 };
   char data_[max_length];
 };
+
+#endif // SESSION_H

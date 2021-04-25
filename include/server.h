@@ -1,3 +1,6 @@
+#ifndef SERVER_H
+#define SERVER_H
+
 #include "logger.h"
 #include "session.h"
 #include "tcp_socket_wrapper.h"
@@ -23,3 +26,5 @@ public:
   EchoRequestHandler echo_request_handler;
   StaticFileRequestHandler static_file_request_handler;
 };
+
+#endif // SERVER_H

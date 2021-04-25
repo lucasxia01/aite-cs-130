@@ -1,3 +1,5 @@
+#ifndef MOCK_SOCKET_H
+#define MOCK_SOCKET_H
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -55,3 +57,5 @@ private:
   std::string fake_input_buffer;
   std::string fake_output_buffer;
 };
+
+#endif // MOCK_SOCKET_H
