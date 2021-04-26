@@ -4,12 +4,12 @@ server {
   server_name foo.com;
 
   echo {
-    root /echo;
+    root /echo /echo2;
   }
 
   static {
-    root /static;
-    path /usr/src/projects/aite/;
+    root /static /static2;
+    path /usr/src/projects/aite/ /doesnotexist;
   }
 
   stupid {

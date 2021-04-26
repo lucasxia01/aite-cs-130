@@ -1,5 +1,5 @@
 #include "server_utils.h"
-#include <iostream>
+#include "logger.h"
 
 std::vector<std::string> configLookup(NginxConfig &config,
                                       std::vector<std::string> block_names,
@@ -74,11 +74,14 @@ bool parseConfigFile(const char *file_name, int &port,
                      std::map<std::string, std::string> &root_to_base_dir) {
   NginxConfigParser config_parser;
   NginxConfig config;
-  config_parser.Parse(file_name, &config);
-
+  bool success = config_parser.Parse(file_name, &config);
+  if (!success) {
+    LOG_FATAL << "Failed to parse config file";
+    return false;
+  }
   port = getPortNumber(config);
   if (port == -1) {
-    std::cerr << "Could not parse a port number from config file\n";
+    LOG_FATAL << "Could not parse a port number from config file";
     return false;
   }
   std::vector<std::string> list_echo_roots =
@@ -86,14 +89,14 @@ bool parseConfigFile(const char *file_name, int &port,
   echo_roots =
       std::set<std::string>(list_echo_roots.begin(), list_echo_roots.end());
   if (echo_roots.empty()) {
-    std::cerr << "Could not parse an echo root\n";
+    LOG_FATAL << "Could not parse an echo root";
     return false;
   }
-  std::cerr << *echo_roots.begin() << std::endl;
+  LOG_DEBUG << "first echo root: " << *echo_roots.begin();
 
   root_to_base_dir = getRootToBaseDirMapping(config);
   if (root_to_base_dir.empty()) {
-    std::cerr << "Could not parse a mapping\n";
+    LOG_FATAL << "Could not parse a mapping";
     return false;
   }
   return true;

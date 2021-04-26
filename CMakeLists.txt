@@ -97,5 +97,7 @@ gtest_discover_tests(request_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_D
 
 # generate coverage report
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server config_parser_lib server_lib session_lib request_parser_lib request_lib server_utils
-TESTS config_parser_lib_test request_parser_lib_test request_lib_test server_lib_test server_utils_test session_lib_test)
+generate_coverage_report(
+    TARGETS server config_parser_lib server_lib session_lib request_parser_lib request_lib server_utils request_handler_lib 
+    TESTS config_parser_lib_test request_parser_lib_test request_lib_test server_lib_test server_utils_test session_lib_test
+)

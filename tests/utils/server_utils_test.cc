@@ -71,15 +71,32 @@ TEST_F(ServerUtilsTest, WrongFieldPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, parsePortFound) {
+TEST_F(ServerUtilsTest, getPortFound) {
   bool success = parser.Parse("basic_config", &out_config);
   size_t port = getPortNumber(out_config);
   EXPECT_EQ(8080, port);
   EXPECT_TRUE(success);
 }
-TEST_F(ServerUtilsTest, parsePortNotFound) {
+TEST_F(ServerUtilsTest, getPortNotFound) {
   bool success = parser.Parse("empty_config", &out_config);
   size_t port = getPortNumber(out_config);
   EXPECT_EQ(-1, port);
+  EXPECT_TRUE(success);
+}
+
+TEST_F(ServerUtilsTest, parseConfigFile) {
+  int port;
+  std::set<std::string> echo_roots;
+  std::map<std::string, std::string> root_to_base_dir;
+  bool success = parseConfigFile("basic_config", port, echo_roots, root_to_base_dir);
+  EXPECT_EQ(port, 8080);
+  EXPECT_EQ(echo_roots.size(), 2);
+  EXPECT_TRUE(echo_roots.find("/echo") != echo_roots.end());
+  EXPECT_TRUE(echo_roots.find("/echo2") != echo_roots.end());
+  EXPECT_EQ(root_to_base_dir.size(), 2);
+  EXPECT_TRUE(root_to_base_dir.find("/static") != root_to_base_dir.end());
+  EXPECT_TRUE(root_to_base_dir.find("/static2") != root_to_base_dir.end());
+  EXPECT_TRUE(root_to_base_dir.find("/random") == root_to_base_dir.end());
+  EXPECT_TRUE(root_to_base_dir.find("/nope") == root_to_base_dir.end());
   EXPECT_TRUE(success);
 }
