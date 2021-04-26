@@ -75,11 +75,11 @@ echo "PASSED TEST 3"
 
 echo "TESTING STATIC FILES"
 mkdir static_test_output && cd static_test_output
-curl -v localhost:80/static/projects/aite/tests/static_test_files/bubujingxin.png --output png.png
-curl -v localhost:80/static/projects/aite/tests/static_test_files/index.html --output html.html
-curl -v localhost:80/static/projects/aite/tests/static_test_files/Michael_mask.jpeg --output jpeg.jpeg
-curl -v localhost:80/static/projects/aite/tests/static_test_files/static_compressed.zip --output zip.zip
-curl -v localhost:80/static/projects/aite/tests/static_test_files/static_file.txt --output txt.txt
+curl -v localhost:8080/static/tests/static_test_files/bubujingxin.png --output png.png
+curl -v localhost:8080/static/tests/static_test_files/index.html --output html.html
+curl -v localhost:8080/static/tests/static_test_files/Michael_mask.jpeg --output jpeg.jpeg
+curl -v localhost:8080/static/tests/static_test_files/static_compressed.zip --output zip.zip
+curl -v localhost:8080/static/tests/static_test_files/static_file.txt --output txt.txt
 png_exists=$(ls | grep "png.png" | wc -l)
 html_exists=$(ls | grep "html.html" | wc -l)
 jpeg_exists=$(ls | grep "jpeg.jpeg" | wc -l)
@@ -88,6 +88,9 @@ txt_exists=$(ls | grep "txt.txt" | wc -l)
 cd .. && rm -rf static_test_output
 if [[ $png_exists -eq 0 || $html_exists -eq 0 || $jpeg_exists -eq 0 || $zip_exists -eq 0 || $txt_exists -eq 0 ]]; then
     echo "Invalid static file request"
+    kill -9 $server_proc
+    kill -9 $server
+    rm -rf test_output
     exit 1
 fi
 echo "PASSED STATIC FILES TEST"

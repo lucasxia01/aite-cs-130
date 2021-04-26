@@ -34,11 +34,12 @@ std::string response::to_string() {
 
 std::string response::get_status_string(status_type status) {
   switch (status) {
-  case OK:
-    return "200 OK";
   case BAD_REQUEST:
     return "400 Bad Request";
   case NOT_FOUND:
     return "404 Not Found";
+  case OK:
+  default:
+    return "200 OK";
   }
 }
