@@ -46,11 +46,10 @@ StaticFileRequestHandler::generate_response(response::status_type status,
   if (ifs.fail())
     return response::get_stock_response(response::NOT_FOUND);
 
-  char c = ifs.get();
   std::stringstream ss;
-  while (ifs.good()) {
+  char c;
+  while (ifs.get(c)) {
     ss << c;
-    c = ifs.get();
   }
   std::string response_body = ss.str();
 

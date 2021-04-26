@@ -1,6 +1,7 @@
 #ifndef MOCK_SOCKET_H
 #define MOCK_SOCKET_H
 
+#include <algorithm>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
@@ -21,10 +22,12 @@ public:
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
     if (!fake_input_buffer.length())
       return;
-    size_t bytes_transferred = fake_input_buffer.length();
-    memcpy(boost::asio::buffer_cast<char *>(buf), fake_input_buffer.c_str(),
+    size_t bytes_transferred = std::min(buf.size(), fake_input_buffer.length());
+    memcpy(boost::asio::buffer_cast<char *>(buf),
+           fake_input_buffer.substr(0, bytes_transferred).c_str(),
            bytes_transferred);
-    fake_input_buffer = "";
+    fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
+
     myFunc(make_error_code(boost::system::errc::success), bytes_transferred);
   }
 
@@ -33,18 +36,21 @@ public:
       boost::asio::mutable_buffer buf,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
     std::string to_transfer = fake_input_buffer.substr(0, buf.size());
+    size_t bytes_transferred = to_transfer.length();
     memcpy(boost::asio::buffer_cast<char *>(buf), to_transfer.c_str(),
-           to_transfer.length());
-    myFunc(make_error_code(boost::system::errc::success), to_transfer.length());
+           bytes_transferred);
+    fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
+    myFunc(make_error_code(boost::system::errc::success), bytes_transferred);
   }
 
   // writes the contents of buf into output buffer
   void write(
       boost::asio::mutable_buffer buf,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
+
     char *buffer = boost::asio::buffer_cast<char *>(buf);
-    fake_output_buffer.assign(buffer, strlen(buffer));
-    myFunc(make_error_code(boost::system::errc::success), strlen(buffer));
+    fake_output_buffer.assign(buffer, buf.size());
+    myFunc(make_error_code(boost::system::errc::success), buf.size());
   }
 
   void set_input_buffer(std::string buf) { fake_input_buffer = buf; }

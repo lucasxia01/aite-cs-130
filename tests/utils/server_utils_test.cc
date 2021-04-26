@@ -88,7 +88,8 @@ TEST_F(ServerUtilsTest, parseConfigFile) {
   int port;
   std::set<std::string> echo_roots;
   std::map<std::string, std::string> root_to_base_dir;
-  bool success = parseConfigFile("basic_config", port, echo_roots, root_to_base_dir);
+  bool success =
+      parseConfigFile("basic_config", port, echo_roots, root_to_base_dir);
   EXPECT_EQ(port, 8080);
   EXPECT_EQ(echo_roots.size(), 2);
   EXPECT_TRUE(echo_roots.find("/echo") != echo_roots.end());

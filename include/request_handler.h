@@ -17,7 +17,7 @@ protected:
 public:
   RequestHandler() {}
   virtual response generate_response(response::status_type status,
-                                    const http::server3::request &req) = 0;
+                                     const http::server3::request &req) = 0;
 
   static void parse_uri(std::string uri);
 };
@@ -29,7 +29,7 @@ public:
   EchoRequestHandler(std::set<std::string> roots) : roots(roots) {}
   bool get_root(std::string uri, std::string &root);
   response generate_response(response::status_type status,
-                            const http::server3::request &req);
+                             const http::server3::request &req);
 };
 
 class StaticFileRequestHandler : public RequestHandler {
@@ -39,13 +39,13 @@ public:
       : root_to_base_dir(root_to_base_dir) {}
   bool get_root(std::string uri, std::string &root);
   response generate_response(response::status_type status,
-                            const http::server3::request &req);
+                             const http::server3::request &req);
 
 private:
   std::map<std::string, std::string> root_to_base_dir;
 
   void parse_uri(std::string uri, std::string root, std::string &path,
-                std::string &content_type);
+                 std::string &content_type);
 };
 
 #endif // REQUEST_HANDLER_H

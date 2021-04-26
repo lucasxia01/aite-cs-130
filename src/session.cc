@@ -1,7 +1,6 @@
 #include "session.h"
 #include "mock_socket.h"
 #include "tcp_socket_wrapper.h"
-#include <iostream>
 
 template <class TSocket>
 session<TSocket>::session(boost::asio::io_service &io_service,
@@ -14,10 +13,6 @@ template <class TSocket> TSocket &session<TSocket>::socket() { return socket_; }
 template <class TSocket> void session<TSocket>::start() {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Starting session";
   session::read_header();
-}
-
-template <class TSocket> std::string session<TSocket>::get_response_str() {
-  return request_.raw_header_str + request_.raw_body_str;
 }
 
 // Read from socket and bind read handler
@@ -34,7 +29,7 @@ template <class TSocket>
 void session<TSocket>::read_body(size_t content_length) {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Reading body of length "
             << content_length;
-  char *body_buffer = new char[content_length];
+  char *body_buffer = new char[content_length + 1];
   socket_.read(
       boost::asio::buffer(body_buffer, content_length),
       [this, body_buffer](const boost::system::error_code &error,
@@ -42,7 +37,8 @@ void session<TSocket>::read_body(size_t content_length) {
         if (!error) {
           // Add remainder of body into request object and echo
           // response
-          request_.raw_body_str.append(std::string(body_buffer));
+          request_.raw_body_str.append(
+              std::string(body_buffer, body_buffer + bytes_transferred));
           response_ =
               request_handler_
                   ? request_handler_->generate_response(response::OK, request_)
@@ -82,10 +78,6 @@ void session<TSocket>::handle_read_header(
                 << ": Succesfully read header";
       LOG_DEBUG << socket_.get_endpoint_address()
                 << ": Request URI:" << request_.uri;
-      for (auto &header : request_.headers) {
-        LOG_DEBUG << socket_.get_endpoint_address() << ": " << header.name
-                  << ", " << header.value;
-      }
       request_handler_ = session::get_request_handler(request_.uri);
       if (!request_handler_) {
         // Bad URI

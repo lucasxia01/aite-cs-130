@@ -1,5 +1,4 @@
 #include "request.h"
-#include <iostream>
 namespace http {
 namespace server3 {
 
