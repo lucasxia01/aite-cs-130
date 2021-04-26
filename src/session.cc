@@ -150,7 +150,7 @@ RequestHandler *session<TSocket>::get_request_handler(std::string requestUri) {
   bool is_static_file_root =
       static_file_request_handler_.get_root(requestUri, static_file_root);
   if (is_echo_root && is_static_file_root) {
-    LOG_DEBUG << socket_.get_endpoint_address() << "Root \"" << echo_root
+    LOG_DEBUG << socket_.get_endpoint_address() << ": Root \"" << echo_root
               << "\" is both echo and static file root\n";
     return nullptr;
   } else if (is_echo_root) {
@@ -158,7 +158,7 @@ RequestHandler *session<TSocket>::get_request_handler(std::string requestUri) {
   } else if (is_static_file_root) {
     return &static_file_request_handler_;
   } else {
-    LOG_DEBUG << socket_.get_endpoint_address() << "Root \"" << echo_root
+    LOG_DEBUG << socket_.get_endpoint_address() << ": Root \"" << echo_root
               << "\" is neither echo or static file root\n";
     return nullptr;
   }
