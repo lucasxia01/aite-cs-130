@@ -7,7 +7,7 @@ server {
     }
 
     static {
-        root /static /static/version2;
-        path /usr/src/projects/aite/ /foo/bar;
+        root /static /static2;
+        path /usr/src/projects/aite/ /;
     }
 }
