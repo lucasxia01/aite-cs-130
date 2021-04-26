@@ -8,6 +8,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <boost/asio.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <logger.h>
@@ -15,6 +16,11 @@
 
 #include "server.h"
 #include "server_utils.h"
+
+void close_handler(const boost::system::error_code &, int) {
+  LOG_INFO << "Server closed";
+  exit(1);
+}
 
 int main(int argc, char *argv[]) {
   Logger::init();
@@ -35,6 +41,8 @@ int main(int argc, char *argv[]) {
     server s(io_service, port_num, echo_roots, root_to_base_dir);
     LOG_INFO << "Running server on port number: " << port_num;
 
+    boost::asio::signal_set signals(io_service, SIGINT);
+    signals.async_wait(close_handler);
     io_service.run();
   } catch (std::exception &e) {
     LOG_ERROR << "Exception: " << e.what();
