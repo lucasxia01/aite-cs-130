@@ -8,6 +8,6 @@ server {
 
     static {
         root /static /static/version2;
-        path /usr/src/ /foo/bar;
+        path /usr/src/projects/aite/ /foo/bar;
     }
 }

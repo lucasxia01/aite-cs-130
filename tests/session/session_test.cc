@@ -10,7 +10,7 @@
 class SessionTest : public testing::Test {
   std::set<std::string> echo_roots = {"/echo"};
   std::map<std::string, std::string> root_to_base_dir = {
-      {"/static", "/usr/src/projects/"}};
+      {"/static", "/usr/src/projects/aite/"}};
 
 protected:
   boost::asio::io_service io_service;
@@ -82,7 +82,7 @@ TEST_F(SessionTest, StaticFile) {
   f.close();
 
   std::string request =
-      "GET /static/aite/tests/static_file.txt HTTP/1.1\r\nHost: "
+      "GET /static/tests/static_file.txt HTTP/1.1\r\nHost: "
       "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: 0\r\n\r\n";
   // client sends request to server through mock socket
   (testSess->socket()).set_input_buffer(request);

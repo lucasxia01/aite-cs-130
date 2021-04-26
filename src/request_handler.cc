@@ -41,7 +41,6 @@ StaticFileRequestHandler::generate_response(response::status_type status,
   std::string root, path, content_type;
   StaticFileRequestHandler::get_root(req.uri, root);
   StaticFileRequestHandler::parse_uri(req.uri, root, path, content_type);
-
   std::ifstream ifs(path, std::ifstream::in);
   if (ifs.fail())
     return response::get_stock_response(response::NOT_FOUND);

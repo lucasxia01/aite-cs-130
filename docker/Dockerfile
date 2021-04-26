@@ -3,8 +3,8 @@
 FROM aite:base as builder
 
 # Share work directory
-COPY . /usr/src/project
-WORKDIR /usr/src/project/build
+COPY . /usr/src/projects/aite
+WORKDIR /usr/src/projects/aite/build
 
 # Build and test
 RUN cmake ..
@@ -17,8 +17,9 @@ RUN ctest --output-on_failure
 FROM ubuntu:latest as deploy
 
 # Copy server output binary and config file to "." 
-  COPY --from=builder /usr/src/project/build/bin/server .
-  COPY --from=builder /usr/src/project/server_config .
+  COPY --from=builder /usr/src/projects/aite/build/bin/server .
+  COPY --from=builder /usr/src/projects/aite/server_config .
+  COPY --from=builder /usr/src/projects/aite/static_files .
 
 # Exposes the port but doesn't publish it
   EXPOSE 80
