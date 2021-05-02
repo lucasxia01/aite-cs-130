@@ -1,0 +1,6 @@
+GET /invalid_path HTTP/1.1
+Host: localhost
+User-Agent: curl/7.68.0
+Content-Length: 3
+
+123

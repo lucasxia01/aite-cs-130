@@ -1,115 +1,175 @@
 #!/bin/bash
-echo "STARTING INTEGRATION TESTS"
+echo "####### STARTING INTEGRATION TESTS #######"
 mkdir test_output
+mkdir static_test_output
 # Running the server with a static config file in the background
 ../../build/bin/server ../config_parser/basic_config 2>test_output/integration.log &
+# Wait for server start up in the background
+sleep 1
 # Storing the pid so we can kill the process later
-server_proc=$(pgrep server)
 server=$(pgrep server)
-##### TEST 1: curl GET request #####
-# Sending a request to the server and storing the response
-echo "STARTING TEST 1"
-curl localhost:8080/echo -o test_output/temp_response.txt -s -S
-# Diffing the response file with the correct response for test 1
-diff test_output/temp_response.txt correct_integration_test_1.txt
+passed_all_tests=true
 
-# Getting the exit code to check if the diff passed
-passed=$?
+#########################################################################################
+# test_valid_echo_curl: curl echo request passes if path matches /echo(\/.+)?
+#########################################################################################
+echo "--------- STARTING test_valid_echo_curl ---------"
+curl localhost:8080/echo/anypath -o test_output/temp_response.txt -s -S
 
-# Checking the exit code and exiting if necessary
-if [ $passed -ne 0 ]; then
-    echo "FAILED TEST 1"
-    rm test_output/temp_response.txt
-    kill -9 $server_proc
-    kill -9 $server
-    rm -rf test_output
-    exit 1
+cmp -s test_output/temp_response.txt correct_test_valid_echo_curl.txt
+result=$?
+
+if [ $result -ne 0 ]; then
+    echo "FAILED test_valid_echo_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_valid_echo_curl"
 fi
-echo "PASSED TEST 1"
-##### TEST 2: Random nc that fails #####
-# Specifying the test string that will be echoed
-echo "STARTING TEST 2"
+
+#########################################################################################
+# test_invalid_echo_nc: Random nc that fails
+#########################################################################################
+echo "--------- STARTING test_invalid_echo_nc ---------"
 test_string="please fail"
 
-# Getting the response and diffing it
 echo "$test_string" | nc -q 1 localhost 8080 >test_output/temp_response.txt
-diff test_output/temp_response.txt correct_integration_test_2.txt
+cmp -s test_output/temp_response.txt correct_bad_request.txt
 
-passed=$?
+result=$?
 
-if [ $passed -ne 0 ]; then
-    echo "FAILED TEST 2"
-    rm test_output/temp_response.txt
-    kill -9 $server_proc
-    kill -9 $server
-    rm -rf test_output
-    exit 1
+if [ $result -ne 0 ]; then
+    echo "FAILED test_invalid_echo_nc"
+    passed_all_tests=false
+else
+    echo "PASSED test_invalid_echo_nc"
 fi
-echo "PASSED TEST 2"
 
-##### TEST 3: Random nc that should pass #####
-echo "STARTING TEST 3"
+#########################################################################################
+# test_valid_echo_nc: Random nc that passes
+#########################################################################################
+echo "--------- STARTING test_valid_echo_nc ---------"
 # Creating the expected response
 response_headers_prefix="HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: "
 # Specifying the test string that will be echoed
-test_string_len=$(cat valid_request.txt | wc -c)
-printf "$response_headers_prefix$test_string_len\n\n" >correct_integration_test_3.txt
-cat valid_request.txt >>correct_integration_test_3.txt
+test_string_len=$(cat valid_echo_request.txt | wc -c)
+printf "$response_headers_prefix$test_string_len\n\n" >correct_test_valid_echo_nc.txt
+cat valid_echo_request.txt >>correct_test_valid_echo_nc.txt
 
-# Getting the response and diffing it
-cat valid_request.txt | nc -q 1 localhost 8080 >test_output/temp_response.txt
+cat valid_echo_request.txt | nc -q 1 localhost 8080 >test_output/temp_response.txt
 
-diff -b test_output/temp_response.txt correct_integration_test_3.txt
+diff -b test_output/temp_response.txt correct_test_valid_echo_nc.txt
 
-passed=$?
+result=$?
 
-if [ $passed -ne 0 ]; then
-    echo "FAILED TEST 3"
-    rm test_output/temp_response.txt
-    kill -9 $server_proc
-    kill -9 $server
-    rm -rf test_output
-    exit 1
+if [ $result -ne 0 ]; then
+    echo "FAILED test_valid_echo_nc"
+    passed_all_tests=false
+else
+    echo "PASSED test_valid_echo_nc"
 fi
-echo "PASSED TEST 3"
 
-echo "TESTING STATIC FILES"
-mkdir static_test_output && cd static_test_output
-curl -v localhost:8080/static/tests/static_test_files/static_image.png --output png.png
-curl -v localhost:8080/static/tests/static_test_files/static_index.html --output html.html
-curl -v localhost:8080/static/tests/static_test_files/static_image.jpeg --output jpeg.jpeg
-curl -v localhost:8080/static/tests/static_test_files/static_compressed.zip --output zip.zip
-curl -v localhost:8080/static/tests/static_test_files/static_file.txt --output txt.txt
-png_exists=$(ls | grep "png.png" | wc -l)
-html_exists=$(ls | grep "html.html" | wc -l)
-jpeg_exists=$(ls | grep "jpeg.jpeg" | wc -l)
-zip_exists=$(ls | grep "zip.zip" | wc -l)
-txt_exists=$(ls | grep "txt.txt" | wc -l)
-cd .. && rm -rf static_test_output
-if [[ $png_exists -eq 0 || $html_exists -eq 0 || $jpeg_exists -eq 0 || $zip_exists -eq 0 || $txt_exists -eq 0 ]]; then
-    echo "Invalid static file request"
-    kill -9 $server_proc
-    kill -9 $server
-    rm -rf test_output
-    exit 1
+#########################################################################################
+# test_invalid_path_nc: nc with a path not defined in the config should fail
+#########################################################################################
+echo "--------- STARTING test_invalid_path_nc ---------"
+
+cat invalid_path_nc_request.txt | nc -q 1 localhost 8080 >test_output/temp_response.txt
+cmp -s test_output/temp_response.txt correct_bad_request.txt
+
+result=$?
+
+if [ $result -ne 0 ]; then
+    echo "FAILED test_invalid_path_nc"
+    passed_all_tests=false
+else
+    echo "PASSED test_invalid_path_nc"
 fi
-echo "PASSED STATIC FILES TEST"
-##### Cleanup #####
+
+#########################################################################################
+# test_invalid_path_curl: curl with a path not defined in the config should fail
+#########################################################################################
+echo "--------- STARTING test_invalid_path_curl ---------"
+
+curl localhost:8080/invalidpath -o test_output/temp_response.txt -s -S
+cmp -s test_output/temp_response.txt <(echo "Invalid request")
+
+result=$?
+
+if [ $result -ne 0 ]; then
+    echo "FAILED test_invalid_path_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_invalid_path_curl"
+fi
+#########################################################################################
+# test_valid_static_files: Static files found in directory should be served
+#########################################################################################
+echo "--------- STARTING test_valid_static_files ---------"
+cd static_test_output
+curl localhost:8080/static/tests/static_test_files/static_image.png -o png.png -s -S
+curl localhost:8080/static/tests/static_test_files/static_index.html -o html.html -s -S
+curl localhost:8080/static/tests/static_test_files/static_image.jpeg -o jpeg.jpeg -s -S
+curl localhost:8080/static/tests/static_test_files/static_compressed.zip -o zip.zip -s -S
+curl localhost:8080/static/tests/static_test_files/static_file.txt -o txt.txt -s -S
+
+cmp png.png ../../static_test_files/static_image.png
+png_cmp=$?
+cmp html.html ../../static_test_files/static_index.html
+html_cmp=$?
+cmp jpeg.jpeg ../../static_test_files/static_image.jpeg
+jpeg_cmp=$?
+cmp zip.zip ../../static_test_files/static_compressed.zip
+zip_cmp=$?
+cmp txt.txt ../../static_test_files/static_file.txt
+txt_cmp=$?
+cd ..
+
+if [[ $png_cmp -ne 0 || $html_cmp -ne 0 || $jpeg_cmp -ne 0 || $zip_cmp -ne 0 || $txt_cmp -ne 0 ]]; then
+    echo "FAILED test_valid_static_files"
+    passed_all_tests=false
+else
+    echo "PASSED test_valid_static_files"
+fi
+
+#########################################################################################
+# test_static_file_not_found_curl: Static files not found in directory should 404
+#########################################################################################
+echo "--------- STARTING test_static_file_not_found_curl ---------"
+cd static_test_output
+curl localhost:8080/static/tests/static_test_files/not_bubujingxin.png -o not.png -s -S
+cmp -s not.png <(echo "File not found")
+result=$?
+cd ..
+if [ $result -ne 0 ]; then
+    echo "FAILED test_static_file_not_found_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_static_file_not_found_curl"
+fi
+
+#########################################################################################
+# CLEANUP
+#########################################################################################
 # Killing the process with the stored process ID
 kill -9 $server
-rm test_output/temp_response.txt
-
+wait $server 2>/dev/null
 info_logs_count=$(cat test_output/integration.log | grep "\[info\]" | wc -l)
 debug_logs_count=$(cat test_output/integration.log | grep "\[debug\]" | wc -l)
 
 # Remove all generated output
+rm -rf static_test_output
 rm -rf test_output
 rm -rf logs
 
 if [[ $info_logs_count -eq 0 || $debug_logs_count -eq 0 ]]; then
     echo "Invalid log count"
-    exit 1
+    passed_all_tests=false
 fi
 
-echo "Passed all integration tests"
-exit 0
+if [ $passed_all_tests = true ]; then
+    echo "####### PASSED INTEGRATION TESTS #######"
+    exit 0
+else
+    echo "####### FAILED INTEGRATION TESTS #######"
+    exit 1
+fi
