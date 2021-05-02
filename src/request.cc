@@ -12,7 +12,7 @@ void request::reset() {
   headers.clear();
 }
 
-size_t request::get_content_length_header() {
+int request::get_content_length_header() {
   for (header h : headers) {
     if (!h.name.compare("Content-Length")) {
       try {

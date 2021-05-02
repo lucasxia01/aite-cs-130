@@ -75,9 +75,9 @@ echo "PASSED TEST 3"
 
 echo "TESTING STATIC FILES"
 mkdir static_test_output && cd static_test_output
-curl -v localhost:8080/static/tests/static_test_files/bubujingxin.png --output png.png
-curl -v localhost:8080/static/tests/static_test_files/index.html --output html.html
-curl -v localhost:8080/static/tests/static_test_files/Michael_mask.jpeg --output jpeg.jpeg
+curl -v localhost:8080/static/tests/static_test_files/static_image.png --output png.png
+curl -v localhost:8080/static/tests/static_test_files/static_index.html --output html.html
+curl -v localhost:8080/static/tests/static_test_files/static_image.jpeg --output jpeg.jpeg
 curl -v localhost:8080/static/tests/static_test_files/static_compressed.zip --output zip.zip
 curl -v localhost:8080/static/tests/static_test_files/static_file.txt --output txt.txt
 png_exists=$(ls | grep "png.png" | wc -l)

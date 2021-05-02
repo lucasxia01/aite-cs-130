@@ -64,7 +64,7 @@ void session<TSocket>::handle_read_header(
     boost::tie(request_parse_result, header_read_end) =
         request_parser_.parse(request_, data_, data_ + bytes_transferred);
 
-    size_t content_length = request_.get_content_length_header();
+    int content_length = request_.get_content_length_header();
     if (!request_parse_result || content_length < 0) {
       // Invalid request headers or invalid Content-Length
       // Send back INVALID_REQUEST_MESSAGE

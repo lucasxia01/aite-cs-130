@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <cstdio>
 #include <fstream>
 #include <sstream>
 
@@ -77,12 +78,13 @@ TEST_F(SessionTest, ReadBody) {
 
 TEST_F(SessionTest, StaticFile) {
   std::string file_content = "test content";
-  std::ofstream f("/usr/src/projects/aite/tests/static_file.txt");
+  const char *path = "/usr/src/projects/aite/tests/static_test_files/file.txt";
+  std::ofstream f(path);
   f << file_content;
   f.close();
 
   std::string request =
-      "GET /static/tests/static_file.txt HTTP/1.1\r\nHost: "
+      "GET /static/tests/static_test_files/file.txt HTTP/1.1\r\nHost: "
       "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: 0\r\n\r\n";
   // client sends request to server through mock socket
   (testSess->socket()).set_input_buffer(request);
@@ -99,4 +101,36 @@ TEST_F(SessionTest, StaticFile) {
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   EXPECT_EQ(expected_response, obtained_response);
+
+  std::remove(path);
+}
+
+TEST_F(SessionTest, NegativeContentLength) {
+  std::string request =
+      "GET /echo HTTP/1.1\r\nHost: "
+      "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: -1\r\n\r\n";
+  // client sends request to server through mock socket
+  (testSess->socket()).set_input_buffer(request);
+  // server starts listening
+  testSess->start();
+
+  // get response from server through mock socket
+  std::string obtained_response = (testSess->socket()).get_output_buffer();
+  EXPECT_EQ(response::get_stock_response(response::BAD_REQUEST).to_string(),
+            obtained_response);
+}
+
+TEST_F(SessionTest, InvalidContentLength) {
+  std::string request =
+      "GET /echo HTTP/1.1\r\nHost: "
+      "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: garbage\r\n\r\n";
+  // client sends request to server through mock socket
+  (testSess->socket()).set_input_buffer(request);
+  // server starts listening
+  testSess->start();
+
+  // get response from server through mock socket
+  std::string obtained_response = (testSess->socket()).get_output_buffer();
+  EXPECT_EQ(response::get_stock_response(response::BAD_REQUEST).to_string(),
+            obtained_response);
 }

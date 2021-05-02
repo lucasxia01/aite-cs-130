@@ -55,14 +55,14 @@ StaticFileRequestHandler::generate_response(const http::server3::request &req) {
   while (ifs.get(c)) {
     ss << c;
   }
-  std::string response_body = ss.str();
+  std::string static_file_content = ss.str();
 
   response resp;
   resp.status = response::OK;
   resp.headers.push_back({"Content-Type", content_type});
   resp.headers.push_back(
-      {"Content-Length", std::to_string(response_body.length())});
-  resp.body = response_body;
+      {"Content-Length", std::to_string(static_file_content.length())});
+  resp.body = static_file_content;
   return resp;
 }
 

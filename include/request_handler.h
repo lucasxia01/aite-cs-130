@@ -1,11 +1,11 @@
 #ifndef REQUEST_HANDLER_H
 #define REQUEST_HANDLER_H
 
+#include "request.h"
 #include "response.h"
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <map>
-#include <request.h>
 #include <set>
 #include <sstream>
 #include <string>

@@ -27,7 +27,7 @@ public:
   std::vector<header> headers;
   std::string raw_header_str;
   std::string raw_body_str;
-  size_t get_content_length_header();
+  int get_content_length_header();
   void reset();
 };
 } // namespace server3
