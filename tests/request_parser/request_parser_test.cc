@@ -29,7 +29,7 @@ TEST_F(RequestParserTest, simpleValid) {
   expectedRes = {"GET", "/path", 1, 1, headers, "", ""};
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 46);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_TRUE(request_parse_result);
   EXPECT_EQ(res.method, expectedRes.method);
   EXPECT_EQ(res.uri, expectedRes.uri);
@@ -38,18 +38,17 @@ TEST_F(RequestParserTest, simpleValid) {
   EXPECT_EQ(res.headers[0], expectedRes.headers[0]);
   EXPECT_EQ(res.headers[res.headers.size() - 1],
             expectedRes.headers[expectedRes.headers.size() - 1]);
-  EXPECT_EQ(header_read_end, req + 46);
+  EXPECT_EQ(header_read_end, req + strlen(req));
 }
-// request with indeterminate result(not all bytes from req were read +40
-// instead of +46)
+// request with indeterminate result(not all bytes from req were read)
 TEST_F(RequestParserTest, indeterminate) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
   // don't read in all the bytes to get to indeterminate result
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 40);
+      rp.parse(res, req, req + strlen(req) - 6);
   // check if result is indeterminate
   EXPECT_TRUE(boost::indeterminate(request_parse_result));
-  EXPECT_EQ(header_read_end, req + 40);
+  EXPECT_EQ(header_read_end, req + strlen(req) -6);
 }
 // Check HTTP with doubleDigit version numbers are valid
 TEST_F(RequestParserTest, versionsDoubleDigit) {
@@ -64,7 +63,7 @@ TEST_F(RequestParserTest, versionsDoubleDigit) {
       ""};
   sprintf(req, "GET /path HTTP/10.10\r\nConnection: keep-alive\r\n\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 48);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_TRUE(request_parse_result);
   EXPECT_EQ(res.method, expectedRes.method);
   EXPECT_EQ(res.uri, expectedRes.uri);
@@ -84,145 +83,146 @@ TEST_F(RequestParserTest, resetState) {
 TEST_F(RequestParserTest, multilineHeaderEmpty) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: keep-alive\r\n \r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 47);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_TRUE(boost::indeterminate(request_parse_result));
 }
 // check that multiline headers are valid with text on the next line
 TEST_F(RequestParserTest, multilineHeaderText) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: keep-alive\r\n rest\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 51);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_TRUE(boost::indeterminate(request_parse_result));
 }
 // check double multiline headers are valid
 TEST_F(RequestParserTest, doubleMultilineHeader) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: keep-alive\r\n \t\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 48);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_TRUE(boost::indeterminate(request_parse_result));
 }
 // check multiline with ctl (ASCII c>=0 && c<=31 || c ==127) is invalid
 TEST_F(RequestParserTest, multilineHeaderCtl) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: keep-alive\r\n \b\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 48);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Check that special characters are invalid starts to headers
 TEST_F(RequestParserTest, specialCharStartHeader) {
   sprintf(req, "GET /path HTTP/1.1\r\n(Connection: keep-alive\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 47);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Check that special characters cannot be in header names
 TEST_F(RequestParserTest, specialCharInHeader) {
   sprintf(req, "GET /path HTTP/1.1\r\nC(onnection: keep-alive\r\n");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 47);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // uri cannot start with ctl (ASCII c>=0 && c<=31 || c ==127)
 TEST_F(RequestParserTest, ctlStartUri) {
   sprintf(req, "GET \b/path");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 10);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected 'H'
 TEST_F(RequestParserTest, notHTTP1) {
   sprintf(req, "GET /path A");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 11);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected 'T'
 TEST_F(RequestParserTest, notHTTP2) {
   sprintf(req, "GET /path HA");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 12);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected 'T'
 TEST_F(RequestParserTest, notHTTP3) {
   sprintf(req, "GET /path HTA");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 13);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected 'P'
 TEST_F(RequestParserTest, notHTTP4) {
   sprintf(req, "GET /path HTTA");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 14);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected '/'
 TEST_F(RequestParserTest, noSlashHTTP) {
   sprintf(req, "GET /path HTTPA");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 15);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected number
 TEST_F(RequestParserTest, httpMajorNotDigit) {
   sprintf(req, "GET /path HTTP/A");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 16);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected '.'
 TEST_F(RequestParserTest, httpNoDot) {
   sprintf(req, "GET /path HTTP/1A");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 17);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected number
 TEST_F(RequestParserTest, httpMinorNotDigit) {
   sprintf(req, "GET /path HTTP/1.A");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 18);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected '\r'
 TEST_F(RequestParserTest, httpMinorNoCRLF) {
   sprintf(req, "GET /path HTTP/1.1A");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 19);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected '\n'
 TEST_F(RequestParserTest, noLFAfterCR) {
   sprintf(req, "GET /path HTTP/1.1\rA");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 20);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
 }
 // Expected space after header_name:
 TEST_F(RequestParserTest, noSpaceBeforeHeaderValue) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection:st");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 33);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
-  // checks that not all bytes parsed if returned false
-  EXPECT_EQ(header_read_end, req + 32);
+  // expects ' ' when reading 's' --> returns false and doesn't read 't'
+  EXPECT_EQ(header_read_end, req + strlen(req)-1);
 }
 // ctl (ASCII c>=0 && c<=31 || c ==127) invalid in header value
 TEST_F(RequestParserTest, noCtlInHeaderValue) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: s\b");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 34);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
-  EXPECT_EQ(header_read_end, req + 34);
+  EXPECT_EQ(header_read_end, req + strlen(req));
 }
 // Expected \n after \r
 TEST_F(RequestParserTest, noNewLineAfterCR2) {
   sprintf(req, "GET /path HTTP/1.1\r\nConnection: s\rABC");
   boost::tie(request_parse_result, header_read_end) =
-      rp.parse(res, req, req + 37);
+      rp.parse(res, req, req + strlen(req));
   EXPECT_FALSE(request_parse_result);
-  EXPECT_EQ(header_read_end, req + 35);
+  //Expects \n when reading A --> return false and doesn't read B or C
+  EXPECT_EQ(header_read_end, req + strlen(req)-2);
 }
 
 } // namespace server3

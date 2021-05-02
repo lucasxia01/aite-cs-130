@@ -23,8 +23,6 @@ public:
   TSocket &socket();
 
   void start();
-  static const int MAX_RESPONSE_HEADER_SIZE;
-  static const std::string INVALID_REQUEST_MESSAGE;
 
 private:
   void read_header();

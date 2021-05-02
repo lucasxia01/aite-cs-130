@@ -11,8 +11,6 @@
 #include <string>
 
 class RequestHandler {
-protected:
-  const int MAX_RESPONSE_HEADER_SIZE = 100;
 
 public:
   RequestHandler() {}
