@@ -41,7 +41,7 @@ void session<TSocket>::read_body(size_t content_length) {
               std::string(body_buffer, body_buffer + bytes_transferred));
           response_ =
               request_handler_
-                  ? request_handler_->generate_response(response::OK, request_)
+                  ? request_handler_->generate_response(request_)
                   : response::get_stock_response(response::BAD_REQUEST);
           session::write();
         } else {
@@ -91,7 +91,7 @@ void session<TSocket>::handle_read_header(
       if (content_length == 0) {
         // If header does not contain content-length, there's no body so just
         // return the header
-        response_ = request_handler_->generate_response(response::OK, request_);
+        response_ = request_handler_->generate_response(request_);
         LOG_DEBUG << socket_.get_endpoint_address()
                   << ": Response status: " << response_.status;
         session::write();
@@ -105,7 +105,7 @@ void session<TSocket>::handle_read_header(
           request_.raw_body_str.append(
               std::string(header_read_end, header_read_end + content_length));
           response_ =
-              request_handler_->generate_response(response::OK, request_);
+              request_handler_->generate_response(request_);
           LOG_DEBUG << socket_.get_endpoint_address()
                     << ": Response status: " << response_.status;
           session::write();
@@ -138,9 +138,10 @@ void session<TSocket>::handle_read_header(
 template <class TSocket>
 RequestHandler *session<TSocket>::get_request_handler(std::string requestUri) {
   std::string echo_root, static_file_root;
-  bool is_echo_root = echo_request_handler_.get_root(requestUri, echo_root);
-  bool is_static_file_root =
-      static_file_request_handler_.get_root(requestUri, static_file_root);
+  bool is_echo_root =
+      echo_request_handler_.get_root_from_uri(requestUri, echo_root);
+  bool is_static_file_root = static_file_request_handler_.get_root_from_uri(
+      requestUri, static_file_root);
   if (is_echo_root && is_static_file_root) {
     LOG_DEBUG << socket_.get_endpoint_address() << ": Root \"" << echo_root
               << "\" is both echo and static file root\n";

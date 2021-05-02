@@ -1,31 +1,18 @@
 #include "request_handler.h"
 #include <algorithm>
 
-response
-EchoRequestHandler::generate_response(response::status_type status,
-                                      const http::server3::request &req) {
-  std::string response_body = req.raw_header_str + req.raw_body_str;
-  response resp;
-  resp.status = response::OK;
-  resp.headers.push_back({"Content-Type", "text/plain"});
-  resp.headers.push_back(
-      {"Content-Length", std::to_string(response_body.length())});
-  resp.body = response_body;
-  return resp;
-}
-
 /**
- * Check if uri is a valid path containing a valid static file root, and if so
- * return true and set root to the parsed value
+ * Check if uri is a valid path containing a valid root, and if so return true
+ * and set root to the parsed value
  **/
-bool EchoRequestHandler::get_root(std::string uri, std::string &root) {
+bool RequestHandler::get_root_from_uri(std::string uri, std::string &root) {
   boost::filesystem::path p(uri);
   root = p.string();
 
   // look through all path prefixes and check if any match a valid root
   // prioritizing longest path prefix
   while (p.has_parent_path()) {
-    if (roots.find(p.string()) != roots.end()) {
+    if (this->has_root(p.string())) {
       root = p.string();
       return true;
     }
@@ -36,11 +23,29 @@ bool EchoRequestHandler::get_root(std::string uri, std::string &root) {
 }
 
 response
-StaticFileRequestHandler::generate_response(response::status_type status,
-                                            const http::server3::request &req) {
+EchoRequestHandler::generate_response(const http::server3::request &req) {
+  std::string response_body = req.raw_header_str + req.raw_body_str;
+  response resp;
+  resp.status = response::OK;
+  resp.headers.push_back({"Content-Type", "text/plain"});
+  resp.headers.push_back(
+      {"Content-Length", std::to_string(response_body.length())});
+  resp.body = response_body;
+  return resp;
+}
+
+bool EchoRequestHandler::has_root(std::string root) {
+  return roots.find(root) != roots.end();
+}
+
+response
+StaticFileRequestHandler::generate_response(const http::server3::request &req) {
   std::string root, path, content_type;
-  StaticFileRequestHandler::get_root(req.uri, root);
-  StaticFileRequestHandler::parse_uri(req.uri, root, path, content_type);
+  bool suc = this->get_root_from_uri(req.uri, root);
+  if (!suc)
+    return response::get_stock_response(response::BAD_REQUEST);
+
+  this->parse_uri(req.uri, root, path, content_type);
   std::ifstream ifs(path, std::ifstream::in);
   if (ifs.fail())
     return response::get_stock_response(response::NOT_FOUND);
@@ -61,25 +66,8 @@ StaticFileRequestHandler::generate_response(response::status_type status,
   return resp;
 }
 
-/**
- * Check if uri is a valid path containing a valid static file root, and if so
- * return true and set root to the parsed value
- **/
-bool StaticFileRequestHandler::get_root(std::string uri, std::string &root) {
-  boost::filesystem::path p(uri);
-  root = p.string();
-
-  // look through all path prefixes and check if any match a valid root
-  // prioritizing longest path prefix
-  while (p.has_parent_path()) {
-    if (root_to_base_dir.find(p.string()) != root_to_base_dir.end()) {
-      root = p.string();
-      return true;
-    }
-    p = p.parent_path();
-  }
-
-  return false;
+bool StaticFileRequestHandler::has_root(std::string root) {
+  return root_to_base_dir.find(root) != root_to_base_dir.end();
 }
 
 /**

@@ -3,11 +3,11 @@ server {
     port 80;
     
     echo {
-        root /echo /echo2 /echo3;
+        root /echo /echo_v2 /echo_v3;
     }
 
     static {
-        root /static /static2;
-        path /usr/src/projects/aite/ /;
+        root /static /static_root_dir /static_dev;
+        path /static_files/ / /usr/src/projects/aite/;
     }
 }
