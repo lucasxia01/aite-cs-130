@@ -1,6 +1,6 @@
 #include "request_handler.h"
 #include "gtest/gtest.h"
-
+#include <optional>
 class EchoRequestHandlerTest : public testing::Test {
 protected:
   EchoRequestHandler *echo_request_handler;
@@ -12,32 +12,30 @@ protected:
 };
 
 TEST_F(EchoRequestHandlerTest, EchoGetRootFound) {
-  std::string root;
-  bool found = echo_request_handler->get_root_from_uri("/echo/file.txt", root);
-  EXPECT_EQ(root, "/echo");
-  EXPECT_TRUE(found);
+  std::optional<std::string> root_opt =
+      echo_request_handler->get_root_from_uri("/echo/file.txt");
+  EXPECT_EQ(root_opt.value(), "/echo");
+  EXPECT_TRUE(root_opt.has_value());
 }
 
 TEST_F(EchoRequestHandlerTest, EchoGetRootFound2) {
-  std::string root;
-  bool found =
-      echo_request_handler->get_root_from_uri("/echo/morestuff/file.txt", root);
-  EXPECT_EQ(root, "/echo");
-  EXPECT_TRUE(found);
+  std::optional<std::string> root_opt =
+      echo_request_handler->get_root_from_uri("/echo/morestuff/file.txt");
+  EXPECT_EQ(root_opt.value(), "/echo");
+  EXPECT_TRUE(root_opt.has_value());
 }
 
 TEST_F(EchoRequestHandlerTest, EchoGetRootFoundMultiLevel) {
-  std::string root;
-  bool found =
-      echo_request_handler->get_root_from_uri("/echo/echo/file.txt", root);
-  EXPECT_EQ(root, "/echo/echo");
-  EXPECT_TRUE(found);
+  std::optional<std::string> root_opt =
+      echo_request_handler->get_root_from_uri("/echo/echo/file.txt");
+  EXPECT_EQ(root_opt.value(), "/echo/echo");
+  EXPECT_TRUE(root_opt.has_value());
 }
 
 TEST_F(EchoRequestHandlerTest, EchoGetRootNotFound) {
-  std::string root;
-  bool found = echo_request_handler->get_root_from_uri("/nope/file.txt", root);
-  EXPECT_FALSE(found);
+  std::optional<std::string> root_opt =
+      echo_request_handler->get_root_from_uri("/nope/file.txt");
+  EXPECT_FALSE(root_opt.has_value());
 }
 
 class StaticFileRequestHandlerTest : public testing::Test {
@@ -53,34 +51,32 @@ protected:
 };
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootFound) {
-  std::string root;
-  bool found =
-      static_file_request_handler->get_root_from_uri("/static/file.txt", root);
-  EXPECT_EQ(root, "/static");
-  EXPECT_TRUE(found);
+  std::optional<std::string> root_opt =
+      static_file_request_handler->get_root_from_uri("/static/file.txt");
+  EXPECT_EQ(root_opt.value(), "/static");
+  EXPECT_TRUE(root_opt.has_value());
 }
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootFound2) {
-  std::string root;
-  bool found = static_file_request_handler->get_root_from_uri(
-      "/static2/morestuff/file.txt", root);
-  EXPECT_EQ(root, "/static2");
-  EXPECT_TRUE(found);
+  std::optional<std::string> root_opt =
+      static_file_request_handler->get_root_from_uri(
+          "/static2/morestuff/file.txt");
+  EXPECT_EQ(root_opt.value(), "/static2");
+  EXPECT_TRUE(root_opt.has_value());
 }
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootFoundMultiLevel) {
-  std::string root;
-  bool found = static_file_request_handler->get_root_from_uri(
-      "/static/static/file.txt", root);
-  EXPECT_EQ(root, "/static/static");
-  EXPECT_TRUE(found);
+  std::optional<std::string> root_opt =
+      static_file_request_handler->get_root_from_uri("/static/static/file.txt");
+  EXPECT_EQ(root_opt.value(), "/static/static");
+  EXPECT_TRUE(root_opt.has_value());
 }
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootNotFound) {
   std::string root;
-  bool found =
-      static_file_request_handler->get_root_from_uri("/nope/file.txt", root);
-  EXPECT_FALSE(found);
+  std::optional<std::string> root_opt =
+      static_file_request_handler->get_root_from_uri("/nope/file.txt");
+  EXPECT_FALSE(root_opt.has_value());
 }
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileNotFound) {

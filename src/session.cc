@@ -1,13 +1,9 @@
 #include "session.h"
-#include "mock_socket.h"
-#include "tcp_socket_wrapper.h"
 
 template <class TSocket>
 session<TSocket>::session(boost::asio::io_service &io_service,
-                          EchoRequestHandler echo_request_handler,
-                          StaticFileRequestHandler static_file_request_handler)
-    : socket_(io_service), echo_request_handler_(echo_request_handler),
-      static_file_request_handler_(static_file_request_handler) {}
+                          const server *const parent_server)
+    : socket_(io_service), parent_server_(parent_server) {}
 template <class TSocket> TSocket &session<TSocket>::socket() { return socket_; }
 
 template <class TSocket> void session<TSocket>::start() {
@@ -39,10 +35,9 @@ void session<TSocket>::read_body(size_t content_length) {
           // response
           request_.raw_body_str.append(
               std::string(body_buffer, body_buffer + bytes_transferred));
-          response_ =
-              request_handler_
-                  ? request_handler_->generate_response(request_)
-                  : response::get_stock_response(response::BAD_REQUEST);
+          response_ = request_handler_
+                          ? request_handler_->generate_response(request_)
+                          : response::get_stock_response(response::BAD_REQUEST);
           session::write();
         } else {
           LOG_ERROR << socket_.get_endpoint_address()
@@ -78,7 +73,7 @@ void session<TSocket>::handle_read_header(
                 << ": Succesfully read header";
       LOG_DEBUG << socket_.get_endpoint_address()
                 << ": Request URI:" << request_.uri;
-      request_handler_ = session::get_request_handler(request_.uri);
+      request_handler_ = parent_server_->get_request_handler(request_.uri);
       if (!request_handler_) {
         // Bad URI
         LOG_DEBUG << socket_.get_endpoint_address()
@@ -104,8 +99,7 @@ void session<TSocket>::handle_read_header(
         if (request_body_bytes >= content_length) {
           request_.raw_body_str.append(
               std::string(header_read_end, header_read_end + content_length));
-          response_ =
-              request_handler_->generate_response(request_);
+          response_ = request_handler_->generate_response(request_);
           LOG_DEBUG << socket_.get_endpoint_address()
                     << ": Response status: " << response_.status;
           session::write();
@@ -127,33 +121,6 @@ void session<TSocket>::handle_read_header(
     LOG_ERROR << socket_.get_endpoint_address()
               << ": Error in read header: " << error.message();
     delete this;
-  }
-}
-
-/**
- * Get the appropriate request handler (echo or static file) based on the
- * request URI. If neither valid echo nor valid static file roots are found,
- * return null.
- **/
-template <class TSocket>
-RequestHandler *session<TSocket>::get_request_handler(std::string requestUri) {
-  std::string echo_root, static_file_root;
-  bool is_echo_root =
-      echo_request_handler_.get_root_from_uri(requestUri, echo_root);
-  bool is_static_file_root = static_file_request_handler_.get_root_from_uri(
-      requestUri, static_file_root);
-  if (is_echo_root && is_static_file_root) {
-    LOG_DEBUG << socket_.get_endpoint_address() << ": Root \"" << echo_root
-              << "\" is both echo and static file root\n";
-    return nullptr;
-  } else if (is_echo_root) {
-    return &echo_request_handler_;
-  } else if (is_static_file_root) {
-    return &static_file_request_handler_;
-  } else {
-    LOG_DEBUG << socket_.get_endpoint_address() << ": Root \"" << echo_root
-              << "\" is neither echo or static file root\n";
-    return nullptr;
   }
 }
 

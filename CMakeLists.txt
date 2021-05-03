@@ -17,6 +17,9 @@ endif()
 
 # Output binaries to a sub directory "bin"
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Enable cmake testing
 include(CTest)
@@ -38,8 +41,8 @@ include(cmake/clang-cxx-dev-tools.cmake)
 include_directories(include)
 
 # adds libraries for server.cc and session.cc
-add_library(server_lib src/server.cc)
 add_library(session_lib src/session.cc)
+add_library(server_lib src/server.cc)
 add_library(config_parser_lib src/config_parser.cc)
 add_library(request_parser_lib src/request_parser.cc)
 add_library(request_lib src/request.cc)
@@ -53,7 +56,7 @@ target_link_libraries(request_lib logger_lib)
 target_link_libraries(config_parser_lib logger_lib)
 
 # add session_lib dependency on request_parser, request, and request_handler_lib libs (indirectly linked with logger)
-target_link_libraries(session_lib request_parser_lib request_lib response_lib request_handler_lib)
+target_link_libraries(session_lib request_parser_lib request_lib response_lib request_handler_lib server_lib)
 
 target_link_libraries(logger_lib Boost::log_setup Boost::log)
 
@@ -82,7 +85,7 @@ add_executable(request_handler_lib_test tests/request_handler/request_handler_te
 
 target_link_libraries(config_parser_lib_test config_parser_lib gtest_main)
 target_link_libraries(server_utils_test server_utils gtest_main)
-target_link_libraries(session_lib_test session_lib gtest_main gmock_main)
+target_link_libraries(session_lib_test server_lib session_lib gtest_main gmock_main)
 target_link_libraries(server_lib_test server_lib gtest_main)
 target_link_libraries(request_parser_lib_test request_parser_lib gtest_main)
 target_link_libraries(request_lib_test request_lib gtest_main)

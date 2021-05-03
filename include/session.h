@@ -5,20 +5,23 @@
 #include <boost/bind.hpp>
 
 #include "logger.h"
+#include "mock_socket.h"
 #include "request.h"
 #include "request_handler.h"
 #include "request_parser.h"
 #include "response.h"
-
+#include "server.h"
+#include "tcp_socket_wrapper.h"
 #include <vector>
 
 using boost::asio::ip::tcp;
 
+class server;
+
 template <class TSocket> class session {
 public:
   session(boost::asio::io_service &io_service,
-          EchoRequestHandler echo_request_handler,
-          StaticFileRequestHandler static_file_request_handler);
+          const server *const parent_server);
 
   TSocket &socket();
 
@@ -32,16 +35,13 @@ private:
   void handle_read_header(const boost::system::error_code &error,
                           size_t bytes_transferred);
 
-  RequestHandler *get_request_handler(std::string requestUri);
-
   TSocket socket_;
   http::server3::request_parser request_parser_;
   http::server3::request request_;
   response response_;
 
-  RequestHandler *request_handler_;
-  EchoRequestHandler echo_request_handler_;
-  StaticFileRequestHandler static_file_request_handler_;
+  const RequestHandler *request_handler_;
+  const server *const parent_server_;
 
   enum { max_length = 1024 };
   char data_[max_length];

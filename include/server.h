@@ -2,11 +2,16 @@
 #define SERVER_H
 
 #include "logger.h"
+#include "request_handler.h"
 #include "session.h"
 #include "tcp_socket_wrapper.h"
+#include <boost/asio.hpp>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
+
+template <class TSocket> class session;
 
 class server {
 public:
@@ -19,8 +24,10 @@ public:
   void handle_accept(session<tcp_socket_wrapper> *new_session,
                      const boost::system::error_code &error);
 
+  const RequestHandler *get_request_handler(std::string request_uri) const;
+
   boost::asio::io_service &io_service_;
-  tcp::acceptor acceptor_;
+  boost::asio::ip::tcp::acceptor acceptor_;
   int start_accept_called;
 
   EchoRequestHandler echo_request_handler;

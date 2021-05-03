@@ -1,5 +1,6 @@
 #include "mock_socket.h"
 #include "request_parser.h"
+#include "server.h"
 #include "session.h"
 #include "gtest/gtest.h"
 #include <boost/asio.hpp>
@@ -15,18 +16,17 @@ class SessionTest : public testing::Test {
 
 protected:
   boost::asio::io_service io_service;
-  EchoRequestHandler echo_request_handler;
-  StaticFileRequestHandler static_file_request_handler;
   boost::system::error_code error;
   session<mock_socket> *testSess;
-  SessionTest()
-      : echo_request_handler(echo_roots),
-        static_file_request_handler(root_to_base_dir) {}
+  server *testServer;
   void SetUp(void) {
-    testSess = new session<mock_socket>(io_service, echo_request_handler,
-                                        static_file_request_handler);
+    testServer = new server(io_service, 8080, echo_roots, root_to_base_dir);
+    testSess = new session<mock_socket>(io_service, testServer);
   }
-  void TearDown(void) { delete testSess; }
+  void TearDown(void) {
+    delete testSess;
+    delete testServer;
+  }
 };
 
 TEST_F(SessionTest, NoBodySuccess) {
