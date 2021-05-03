@@ -12,14 +12,14 @@
 #include <sstream>
 #include <string>
 class RequestHandler {
-
-  virtual bool has_root(std::string root) const = 0;
-
 public:
   RequestHandler() {}
   virtual response
   generate_response(const http::server3::request &req) const = 0;
   std::optional<std::string> get_root_from_uri(std::string uri) const;
+
+private:
+  virtual bool has_root(std::string root) const = 0;
 };
 
 class EchoRequestHandler : public RequestHandler {
