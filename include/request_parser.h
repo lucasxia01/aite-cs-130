@@ -8,20 +8,26 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef HTTP_SERVER3_REQUEST_PARSER_H
-#define HTTP_SERVER3_REQUEST_PARSER_H
+#ifndef REQUEST_PARSER_H
+#define REQUEST_PARSER_H
 
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/logic/tribool.hpp>
 #include <boost/tuple/tuple.hpp>
 
-namespace http {
-namespace server3 {
+namespace beast = boost::beast;
+namespace http = beast::http;
 
-struct request;
+#define response response<http::string_body>
+#define request request<http::string_body>
 
 /// Parser for incoming requests.
 class request_parser {
 public:
+  struct parser_request;
+
   /// Construct ready to parse the request method.
   request_parser();
 
@@ -32,11 +38,13 @@ public:
   /// has been parsed, false if the data is invalid, indeterminate when more
   /// data is required. The InputIterator return value indicates how much of the
   /// input has been consumed.
-  virtual boost::tuple<boost::tribool, char *> parse(request &req, char *begin,
-                                                     char *end);
+  boost::tuple<boost::tribool, char *> parse(http::request &req, char *begin,
+                                             char *end);
+
+  void translate(http::request &req, parser_request parsed);
 
   /// Handle the next character of input.
-  boost::tribool consume(request &req, char input);
+  boost::tribool consume(parser_request &req, char input);
 
   /// Check if a byte is an HTTP character.
   static bool is_char(int c);
@@ -73,9 +81,20 @@ public:
     expecting_newline_2,
     expecting_newline_3
   } state_;
+
+  struct header {
+    std::string name;
+    std::string value;
+  };
+
+  struct parser_request {
+    std::string method;
+    std::string uri;
+    int http_version_major;
+    int http_version_minor;
+    std::vector<header> headers;
+    std::string body;
+  };
 };
 
-} // namespace server3
-} // namespace http
-
-#endif // HTTP_SERVER3_REQUEST_PARSER_H
+#endif // REQUEST_PARSER_H

@@ -20,14 +20,16 @@ public:
   void read_some(
       boost::asio::mutable_buffer buf,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
+
     if (!fake_input_buffer.length())
       return;
+
     size_t bytes_transferred = std::min(buf.size(), fake_input_buffer.length());
     memcpy(boost::asio::buffer_cast<char *>(buf),
            fake_input_buffer.substr(0, bytes_transferred).c_str(),
            bytes_transferred);
-    fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
 
+    fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
     myFunc(make_error_code(boost::system::errc::success), bytes_transferred);
   }
 
@@ -35,10 +37,13 @@ public:
   void read(
       boost::asio::mutable_buffer buf,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
+
     std::string to_transfer = fake_input_buffer.substr(0, buf.size());
+
     size_t bytes_transferred = to_transfer.length();
     memcpy(boost::asio::buffer_cast<char *>(buf), to_transfer.c_str(),
            bytes_transferred);
+
     fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
     myFunc(make_error_code(boost::system::errc::success), bytes_transferred);
   }
@@ -50,6 +55,7 @@ public:
 
     char *buffer = boost::asio::buffer_cast<char *>(buf);
     fake_output_buffer.assign(buffer, buf.size());
+
     myFunc(make_error_code(boost::system::errc::success), buf.size());
   }
 

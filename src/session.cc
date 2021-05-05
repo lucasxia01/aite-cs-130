@@ -26,26 +26,26 @@ void session<TSocket>::read_body(size_t content_length) {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Reading body of length "
             << content_length;
   char *body_buffer = new char[content_length + 1];
-  socket_.read(
-      boost::asio::buffer(body_buffer, content_length),
-      [this, body_buffer](const boost::system::error_code &error,
-                          size_t bytes_transferred) {
-        if (!error) {
-          // Add remainder of body into request object and echo
-          // response
-          request_.raw_body_str.append(
-              std::string(body_buffer, body_buffer + bytes_transferred));
-          response_ = request_handler_
-                          ? request_handler_->generate_response(request_)
-                          : response::get_stock_response(response::BAD_REQUEST);
-          session::write();
-        } else {
-          LOG_ERROR << socket_.get_endpoint_address()
-                    << ": Error in read body:" << error.message();
-          delete this;
-        }
-        delete[] body_buffer;
-      });
+  socket_.read(boost::asio::buffer(body_buffer, content_length),
+               [this, body_buffer](const boost::system::error_code &error,
+                                   size_t bytes_transferred) {
+                 if (!error) {
+                   // Add remainder of body into request object and echo
+                   // response
+                   request_.body().append(std::string(
+                       body_buffer, body_buffer + bytes_transferred));
+                   response_ = request_handler_
+                                   ? request_handler_->handle_request(request_)
+                                   : RequestHandler::get_stock_response(
+                                         http::status::bad_request);
+                   session::write();
+                 } else {
+                   LOG_ERROR << socket_.get_endpoint_address()
+                             << ": Error in read body:" << error.message();
+                   delete this;
+                 }
+                 delete[] body_buffer;
+               });
 }
 
 // Process data upon socket read
@@ -59,26 +59,37 @@ void session<TSocket>::handle_read_header(
     boost::tie(request_parse_result, header_read_end) =
         request_parser_.parse(request_, data_, data_ + bytes_transferred);
 
-    int content_length = request_.get_content_length_header();
+    int content_length;
+    try {
+      content_length =
+          request_[http::field::content_length].empty()
+              ? 0
+              : std::stoi(std::string(request_[http::field::content_length]));
+    } catch (...) {
+      content_length = -1;
+    }
+
     if (!request_parse_result || content_length < 0) {
       // Invalid request headers or invalid Content-Length
       // Send back INVALID_REQUEST_MESSAGE
       LOG_DEBUG << socket_.get_endpoint_address()
                 << ": Bad request header or content length...\n"
                 << "\tContent length: " << content_length;
-      response_ = response::get_stock_response(response::BAD_REQUEST);
+      response_ = RequestHandler::get_stock_response(http::status::bad_request);
       session::write();
     } else if (request_parse_result) {
       LOG_DEBUG << socket_.get_endpoint_address()
-                << ": Succesfully read header";
+                << ": Successfully read header";
       LOG_DEBUG << socket_.get_endpoint_address()
-                << ": Request URI:" << request_.uri;
-      request_handler_ = parent_server_->get_request_handler(request_.uri);
+                << ": Request URI:" << request_.target();
+      request_handler_ =
+          parent_server_->get_request_handler(std::string(request_.target()));
       if (!request_handler_) {
         // Bad URI
         LOG_DEBUG << socket_.get_endpoint_address()
-                  << ": Bad URI:" << request_.uri;
-        response_ = response::get_stock_response(response::BAD_REQUEST);
+                  << ": Bad URI:" << request_.target();
+        response_ =
+            RequestHandler::get_stock_response(http::status::bad_request);
         session::write();
         return;
       }
@@ -86,9 +97,9 @@ void session<TSocket>::handle_read_header(
       if (content_length == 0) {
         // If header does not contain content-length, there's no body so just
         // return the header
-        response_ = request_handler_->generate_response(request_);
+        response_ = request_handler_->handle_request(request_);
         LOG_DEBUG << socket_.get_endpoint_address()
-                  << ": Response status: " << response_.status;
+                  << ": Response status: " << response_.result_int();
         session::write();
       } else {
         // Otherwise read the remainder of the buffer as the start of the body,
@@ -97,17 +108,17 @@ void session<TSocket>::handle_read_header(
         size_t request_body_bytes = bytes_transferred - request_header_bytes;
 
         if (request_body_bytes >= content_length) {
-          request_.raw_body_str.append(
+          request_.body().append(
               std::string(header_read_end, header_read_end + content_length));
-          response_ = request_handler_->generate_response(request_);
+          response_ = request_handler_->handle_request(request_);
           LOG_DEBUG << socket_.get_endpoint_address()
-                    << ": Response status: " << response_.status;
+                    << ": Response status: " << response_.result_int();
           session::write();
         } else {
           // Append the remainder of the read in data as the first part of the
           // request body Then read in the remainder of the body not included in
           // this read_some
-          request_.raw_body_str.append(
+          request_.body().append(
               std::string(header_read_end, data_ + bytes_transferred));
           session::read_body(content_length - request_body_bytes);
         }
@@ -126,7 +137,9 @@ void session<TSocket>::handle_read_header(
 
 // Write to socket and bind write handler
 template <class TSocket> void session<TSocket>::write() {
-  std::string response_str = response_.to_string();
+  std::ostringstream ss;
+  ss << response_;
+  std::string response_str = ss.str();
 
   LOG_DEBUG << socket_.get_endpoint_address()
             << ": Starting write to socket, response length "
@@ -140,7 +153,6 @@ template <class TSocket> void session<TSocket>::write() {
         if (!error) {
           LOG_DEBUG << socket_.get_endpoint_address()
                     << ": Completed write. Preparing for next request";
-          request_.reset();
           request_parser_.reset();
           read_header();
         } else {

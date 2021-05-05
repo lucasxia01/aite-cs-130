@@ -18,15 +18,42 @@ RequestHandler::get_root_from_uri(std::string uri) const {
   return std::nullopt;
 }
 
-response
-EchoRequestHandler::generate_response(const http::server3::request &req) const {
-  std::string response_body = req.raw_header_str + req.raw_body_str;
-  response resp;
-  resp.status = response::OK;
-  resp.headers.push_back({"Content-Type", "text/plain"});
-  resp.headers.push_back(
-      {"Content-Length", std::to_string(response_body.length())});
-  resp.body = response_body;
+http::response RequestHandler::get_stock_response(http::status status_code) {
+  std::string response_body;
+  switch (status_code) {
+  case http::status::ok:
+    response_body = "";
+    break;
+  case http::status::bad_request:
+    response_body = "Invalid request\n";
+    break;
+  case http::status::not_found:
+    response_body = "File not found\n";
+    break;
+  default:
+    response_body = "";
+    break;
+  }
+
+  http::response resp;
+  resp.result(status_code);
+  resp.set(http::field::content_type, "text/plain");
+  resp.content_length(response_body.length());
+  resp.body() = response_body;
+  return resp;
+}
+
+http::response
+EchoRequestHandler::handle_request(const http::request &req) const {
+  std::ostringstream ss;
+  ss << req;
+  std::string request_content = ss.str();
+
+  http::response resp;
+  resp.result(http::status::ok);
+  resp.set(http::field::content_type, "text/plain");
+  resp.content_length(request_content.length());
+  resp.body() = request_content;
   return resp;
 }
 
@@ -34,18 +61,21 @@ bool EchoRequestHandler::has_root(std::string root) const {
   return roots.find(root) != roots.end();
 }
 
-response StaticFileRequestHandler::generate_response(
-    const http::server3::request &req) const {
-  std::optional<std::string> root_opt = this->get_root_from_uri(req.uri);
+http::response
+StaticFileRequestHandler::handle_request(const http::request &req) const {
+  std::string http_uri(req.target());
+  std::optional<std::string> root_opt = this->get_root_from_uri(http_uri);
   if (!root_opt) {
-    return response::get_stock_response(response::BAD_REQUEST);
+    return RequestHandler::get_stock_response(http::status::bad_request);
   }
+
   std::string content_type =
-      this->parse_content_type_from_uri(req.uri, root_opt.value());
-  std::string path = this->parse_path_from_uri(req.uri, root_opt.value());
+      this->parse_content_type_from_uri(http_uri, root_opt.value());
+  std::string path = this->parse_path_from_uri(http_uri, root_opt.value());
   std::ifstream ifs(path, std::ifstream::in);
-  if (ifs.fail())
-    return response::get_stock_response(response::NOT_FOUND);
+  if (ifs.fail()) {
+    return RequestHandler::get_stock_response(http::status::not_found);
+  }
 
   std::stringstream ss;
   char c;
@@ -54,12 +84,11 @@ response StaticFileRequestHandler::generate_response(
   }
   std::string static_file_content = ss.str();
 
-  response resp;
-  resp.status = response::OK;
-  resp.headers.push_back({"Content-Type", content_type});
-  resp.headers.push_back(
-      {"Content-Length", std::to_string(static_file_content.length())});
-  resp.body = static_file_content;
+  http::response resp;
+  resp.result(http::status::ok);
+  resp.set(http::field::content_type, content_type);
+  resp.content_length(static_file_content.length());
+  resp.body() = static_file_content;
   return resp;
 }
 

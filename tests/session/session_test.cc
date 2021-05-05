@@ -1,4 +1,5 @@
 #include "mock_socket.h"
+#include "request_handler.h"
 #include "request_parser.h"
 #include "server.h"
 #include "session.h"
@@ -30,18 +31,18 @@ protected:
 };
 
 TEST_F(SessionTest, NoBodySuccess) {
-  std::string request = "GET /echo HTTP/1.1\r\nHost: localhost\r\nUser-Agent: "
-                        "curl/7.68.0\r\nContent-Length: 0\r\n\r\n";
+  std::string req = "GET /echo HTTP/1.1\r\nHost: localhost\r\nUser-Agent: "
+                    "curl/7.68.0\r\nContent-Length: 0\r\n\r\n";
   // client sends request to server through mock socket
-  (testSess->socket()).set_input_buffer(request);
+  (testSess->socket()).set_input_buffer(req);
   // server starts listening
   testSess->start();
 
   std::stringstream ss;
   ss << "HTTP/1.1 200 OK\r\n"
      << "Content-Type: text/plain\r\n"
-     << "Content-Length: " << request.length() << "\r\n\r\n"
-     << request;
+     << "Content-Length: " << req.length() << "\r\n\r\n"
+     << req;
   std::string expected_response = ss.str();
 
   // get response from server through mock socket
@@ -57,18 +58,18 @@ TEST_F(SessionTest, ReadBody) {
      << "User-Agent: curl/7.68.0\r\n"
      << "Content-Length: " << body.length() << "\r\n\r\n"
      << body;
-  std::string request = ss.str();
+  std::string req = ss.str();
 
-  // client sends request to server through mock socket
-  (testSess->socket()).set_input_buffer(request);
+  // client sends req to server through mock socket
+  (testSess->socket()).set_input_buffer(req);
   // server starts listening
   testSess->start();
 
   std::stringstream ss_exp;
   ss_exp << "HTTP/1.1 200 OK\r\n"
          << "Content-Type: text/plain\r\n"
-         << "Content-Length: " << request.length() << "\r\n\r\n"
-         << request;
+         << "Content-Length: " << req.length() << "\r\n\r\n"
+         << req;
   std::string expected_response = ss_exp.str();
 
   // get response from server through mock socket
@@ -83,11 +84,11 @@ TEST_F(SessionTest, StaticFile) {
   f << file_content;
   f.close();
 
-  std::string request =
+  std::string req =
       "GET /static/tests/static_test_files/file.txt HTTP/1.1\r\nHost: "
       "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: 0\r\n\r\n";
-  // client sends request to server through mock socket
-  (testSess->socket()).set_input_buffer(request);
+  // client sends req to server through mock socket
+  (testSess->socket()).set_input_buffer(req);
   // server starts listening
   testSess->start();
 
@@ -106,31 +107,33 @@ TEST_F(SessionTest, StaticFile) {
 }
 
 TEST_F(SessionTest, NegativeContentLength) {
-  std::string request =
-      "GET /echo HTTP/1.1\r\nHost: "
-      "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: -1\r\n\r\n";
-  // client sends request to server through mock socket
-  (testSess->socket()).set_input_buffer(request);
+  std::string req = "GET /echo HTTP/1.1\r\nHost: localhost\r\nUser-Agent: "
+                    "curl/7.68.0\r\nContent-Length: -1\r\n\r\n";
+  // client sends req to server through mock socket
+  (testSess->socket()).set_input_buffer(req);
   // server starts listening
   testSess->start();
 
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
-  EXPECT_EQ(response::get_stock_response(response::BAD_REQUEST).to_string(),
-            obtained_response);
+  std::ostringstream expected_response;
+  expected_response << RequestHandler::get_stock_response(
+      http::status::bad_request);
+  EXPECT_EQ(expected_response.str(), obtained_response);
 }
 
 TEST_F(SessionTest, InvalidContentLength) {
-  std::string request =
-      "GET /echo HTTP/1.1\r\nHost: "
-      "localhost\r\nUser-Agent: curl/7.68.0\r\nContent-Length: garbage\r\n\r\n";
-  // client sends request to server through mock socket
-  (testSess->socket()).set_input_buffer(request);
+  std::string req = "GET /echo HTTP/1.1\r\nHost: localhost\r\nUser-Agent: "
+                    "curl/7.68.0\r\nContent-Length: garbage\r\n\r\n";
+  // client sends req to server through mock socket
+  (testSess->socket()).set_input_buffer(req);
   // server starts listening
   testSess->start();
 
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
-  EXPECT_EQ(response::get_stock_response(response::BAD_REQUEST).to_string(),
-            obtained_response);
+  std::ostringstream expected_response;
+  expected_response << RequestHandler::get_stock_response(
+      http::status::bad_request);
+  EXPECT_EQ(expected_response.str(), obtained_response);
 }

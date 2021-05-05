@@ -3,18 +3,15 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <sstream>
+#include <vector>
 
 #include "logger.h"
 #include "mock_socket.h"
-#include "request.h"
 #include "request_handler.h"
 #include "request_parser.h"
-#include "response.h"
 #include "server.h"
 #include "tcp_socket_wrapper.h"
-#include <vector>
-
-using boost::asio::ip::tcp;
 
 class server;
 
@@ -36,9 +33,9 @@ private:
                           size_t bytes_transferred);
 
   TSocket socket_;
-  http::server3::request_parser request_parser_;
-  http::server3::request request_;
-  response response_;
+  request_parser request_parser_;
+  http::request request_;
+  http::response response_;
 
   const RequestHandler *request_handler_;
   const server *const parent_server_;

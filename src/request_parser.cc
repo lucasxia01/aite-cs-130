@@ -9,28 +9,37 @@
 //
 
 #include "request_parser.h"
-#include "request.h"
-
-namespace http {
-namespace server3 {
 
 request_parser::request_parser() : state_(method_start) {}
 
 void request_parser::reset() { state_ = method_start; }
 
 boost::tuple<boost::tribool, char *>
-request_parser::parse(request &req, char *begin, char *end) {
+request_parser::parse(http::request &req, char *begin, char *end) {
+  parser_request req_;
   while (begin != end) {
-    boost::tribool result = consume(req, *begin++);
-    if (result || !result)
+    boost::tribool result = consume(req_, *begin++);
+    if (result || !result) {
+      if (result)
+        request_parser::translate(req, req_);
       return boost::make_tuple(result, begin);
+    }
   }
   boost::tribool result = boost::indeterminate;
   return boost::make_tuple(result, begin);
 }
 
-boost::tribool request_parser::consume(request &req, char input) {
-  req.raw_header_str.push_back(input);
+void request_parser::translate(http::request &req, parser_request parsed) {
+  req.method(http::string_to_verb(parsed.method));
+  req.version(parsed.http_version_major * 10 + parsed.http_version_minor);
+  req.target(parsed.uri);
+
+  for (header h : parsed.headers) {
+    req.set(h.name, h.value);
+  }
+}
+
+boost::tribool request_parser::consume(parser_request &req, char input) {
   switch (state_) {
   case method_start:
     if (!is_char(input) || is_ctl(input) || is_tspecial(input)) {
@@ -241,6 +250,3 @@ bool request_parser::is_tspecial(int c) {
 }
 
 bool request_parser::is_digit(int c) { return c >= '0' && c <= '9'; }
-
-} // namespace server3
-} // namespace http

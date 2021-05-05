@@ -81,19 +81,18 @@ TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootNotFound) {
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileNotFound) {
   std::string root;
-  http::server3::request req;
-  req.uri = "/static/nope/file.txt";
-  response received_response =
-      static_file_request_handler->generate_response(req);
+  http::request req;
+  req.target("/static/nope/file.txt");
+  std::stringstream received_response;
+  received_response << static_file_request_handler->handle_request(req);
 
-  std::stringstream ss;
-  ss << "HTTP/1.1 " << response::get_status_string(response::NOT_FOUND)
-     << "\r\n"
-     << "Content-Type: text/plain\r\n"
-     << "Content-Length: 15\r\n\r\n"
-     << "File not found\n";
-  std::string expected_response = ss.str();
+  std::stringstream expected_response;
+  expected_response << "HTTP/1.1 404 Not Found"
+                    << "\r\n"
+                    << "Content-Type: text/plain\r\n"
+                    << "Content-Length: 15\r\n\r\n"
+                    << "File not found\n";
 
   // get response from server through mock socket
-  EXPECT_EQ(expected_response, received_response.to_string());
+  EXPECT_EQ(expected_response.str(), received_response.str());
 }

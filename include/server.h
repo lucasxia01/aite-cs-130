@@ -11,6 +11,8 @@
 #include <set>
 #include <string>
 
+using namespace boost::asio::ip;
+
 template <class TSocket> class session;
 
 class server {
@@ -27,7 +29,7 @@ public:
   const RequestHandler *get_request_handler(std::string request_uri) const;
 
   boost::asio::io_service &io_service_;
-  boost::asio::ip::tcp::acceptor acceptor_;
+  tcp::acceptor acceptor_;
   int start_accept_called;
 
   EchoRequestHandler echo_request_handler;

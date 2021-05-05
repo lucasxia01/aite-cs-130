@@ -41,7 +41,8 @@ void server::handle_accept(session<tcp_socket_wrapper> *new_session,
  * request URI. If neither valid echo nor valid static file roots are found,
  * return null.
  **/
-const RequestHandler *server::get_request_handler(std::string request_uri) const {
+const RequestHandler *
+server::get_request_handler(std::string request_uri) const {
   std::optional<std::string> echo_root_opt =
       echo_request_handler.get_root_from_uri(request_uri);
   std::optional<std::string> static_file_root_opt =
