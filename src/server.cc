@@ -1,18 +1,31 @@
 #include "server.h"
 
-server::server(boost::asio::io_service &io_service, short port,
-               std::set<std::string> echo_roots,
-               std::map<std::string, std::string> root_to_base_dir)
+server::server(boost::asio::io_service &io_service, short port)
     : io_service_(io_service),
-      acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
-      start_accept_called(0), echo_request_handler(echo_roots),
-      static_file_request_handler(root_to_base_dir) {
+      acceptor_(io_service, tcp::endpoint(tcp::v4(), port)) {
   start_accept();
 }
+void server::create_and_add_handler(HandlerType type,
+                                    const std::string &location,
+                                    const NginxConfig &config) {
+  std::string loc = convertToAbsolutePath(location);
+  const RequestHandler *handler;
+  switch (type) {
+  case HANDLER_ECHO:
+    handler = new EchoRequestHandler(loc, config);
+    break;
+  case HANDLER_STATIC_FILE:
+    handler = new StaticFileRequestHandler(loc, config);
+    break;
+  case HANDLER_NOT_FOUND:
+    handler = new NotFoundRequestHandler(loc, config);
+    break;
+  }
 
+  location_to_handler_[loc] = handler;
+}
 session<tcp_socket_wrapper> *server::start_accept() {
   LOG_DEBUG << "Starting accept";
-  start_accept_called++;
   session<tcp_socket_wrapper> *new_session =
       new session<tcp_socket_wrapper>(io_service_, this);
   LOG_DEBUG << "Waiting to accept new connection...";
@@ -43,21 +56,14 @@ void server::handle_accept(session<tcp_socket_wrapper> *new_session,
  **/
 const RequestHandler *
 server::get_request_handler(std::string request_uri) const {
-  std::optional<std::string> echo_root_opt =
-      echo_request_handler.get_root_from_uri(request_uri);
-  std::optional<std::string> static_file_root_opt =
-      static_file_request_handler.get_root_from_uri(request_uri);
-  if (echo_root_opt && static_file_root_opt) {
-    LOG_DEBUG << "Found both echo (" << echo_root_opt.value()
-              << ") and static (" << static_file_root_opt.value()
-              << ") roots from uri: " << request_uri;
-    return nullptr;
-  } else if (echo_root_opt) {
-    return &echo_request_handler;
-  } else if (static_file_root_opt) {
-    return &static_file_request_handler;
-  } else {
-    LOG_DEBUG << request_uri << " contains neither echo or static file root\n";
-    return nullptr;
+  boost::filesystem::path uri(convertToAbsolutePath(request_uri));
+  // look through all path prefixes and check if any match a valid location
+  // prioritizing longest path prefix
+  while (uri.has_parent_path()) {
+    if (location_to_handler_.find(uri.string()) != location_to_handler_.end()) {
+      return location_to_handler_.at(uri.string());
+    }
+    uri = uri.parent_path();
   }
+  return nullptr;
 }

@@ -10,12 +10,11 @@
 
 #include <boost/asio.hpp>
 #include <cstdlib>
-#include <iostream>
 #include <logger.h>
 #include <vector>
 
 #include "server.h"
-#include "server_utils.h"
+#include "utils.h"
 
 void close_handler(const boost::system::error_code &, int) {
   LOG_INFO << "Server closed";
@@ -38,7 +37,7 @@ int main(int argc, char *argv[]) {
     parseConfigFile(argv[1], port_num, echo_roots, root_to_base_dir);
 
     LOG_INFO << "Successfully parsed port number: " << port_num;
-    server s(io_service, port_num, echo_roots, root_to_base_dir);
+    server s(io_service, port_num);
     LOG_INFO << "Running server on port number: " << port_num;
 
     boost::asio::signal_set signals(io_service, SIGINT);

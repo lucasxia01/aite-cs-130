@@ -1,7 +1,7 @@
-#include "server_utils.h"
+#include "utils.h"
 #include "logger.h"
 
-std::vector<std::string> configLookup(NginxConfig &config,
+std::vector<std::string> configLookup(const NginxConfig &config,
                                       std::vector<std::string> block_names,
                                       std::string field_name) {
   int len = block_names.size();
@@ -100,4 +100,42 @@ bool parseConfigFile(const char *file_name, int &port,
     return false;
   }
   return true;
+}
+
+std::string convertToAbsolutePath(std::string path) {
+  boost::filesystem::path full_path = boost::filesystem::system_complete(path);
+  path = full_path.string();
+  // simplify '.' and '..' directories
+  std::vector<std::string> path_comps;
+  for (int i = 0; i < path.length(); i++) {
+    std::string dir = "";
+    while (i < path.length() && path[i] != '/') {
+      dir += path[i];
+      i++;
+    }
+    if (dir == "..") {
+      if (path_comps.empty()) {
+        LOG_ERROR << "invalid path";
+      }
+      path_comps.pop_back();
+    } else if (dir == "." || dir == "") {
+      continue;
+    } else {
+      path_comps.push_back(dir);
+    }
+  }
+  path = "";
+  for (auto dir : path_comps) {
+    path += "/" + dir;
+  }
+  std::filesystem::path p(path);
+  std::error_code err;
+
+  if (std::filesystem::is_directory(p, err)) {
+    path = (path.back() != '/') ? path + "/" : path;
+  }
+  if (err) {
+    LOG_ERROR << "Error checking if path is a directory";
+  }
+  return path;
 }

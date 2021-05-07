@@ -17,9 +17,7 @@ template <class TSocket> class session;
 
 class server {
 public:
-  server(boost::asio::io_service &io_service, short port,
-         std::set<std::string> echo_roots,
-         std::map<std::string, std::string> root_to_base_dir);
+  server(boost::asio::io_service &io_service, short port);
 
   session<tcp_socket_wrapper> *start_accept();
 
@@ -27,13 +25,19 @@ public:
                      const boost::system::error_code &error);
 
   const RequestHandler *get_request_handler(std::string request_uri) const;
-
   boost::asio::io_service &io_service_;
   tcp::acceptor acceptor_;
-  int start_accept_called;
 
-  EchoRequestHandler echo_request_handler;
-  StaticFileRequestHandler static_file_request_handler;
+  std::map<const std::string, const RequestHandler *> location_to_handler_;
+
+private:
+  enum HandlerType {
+    HANDLER_ECHO = 0,
+    HANDLER_STATIC_FILE = 1,
+    HANDLER_NOT_FOUND = 2
+  };
+  void create_and_add_handler(HandlerType type, const std::string &location,
+                              const NginxConfig &config);
 };
 
 #endif // SERVER_H

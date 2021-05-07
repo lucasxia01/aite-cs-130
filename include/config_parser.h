@@ -2,7 +2,6 @@
 #define CONFIG_PARSER_H
 
 // An nginx config file parser.
-#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>

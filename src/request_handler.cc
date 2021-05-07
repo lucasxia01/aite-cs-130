@@ -1,43 +1,20 @@
 #include "request_handler.h"
 
-/**
- * Check if uri is a valid path containing a valid root, and if so return true
- * and set root to the parsed value
- **/
-std::optional<std::string>
-RequestHandler::get_root_from_uri(std::string uri) const {
-  boost::filesystem::path p(uri);
-  // look through all path prefixes and check if any match a valid root
-  // prioritizing longest path prefix
-  while (p.has_parent_path()) {
-    if (this->has_root(p.string())) {
-      return p.string();
-    }
-    p = p.parent_path();
-  }
-  return std::nullopt;
-}
-
-http::response RequestHandler::get_stock_response(http::status status_code) {
-  std::string response_body;
-  switch (status_code) {
-  case http::status::ok:
-    response_body = "";
-    break;
-  case http::status::bad_request:
-    response_body = "Invalid request\n";
-    break;
-  case http::status::not_found:
-    response_body = "File not found\n";
-    break;
-  default:
-    response_body = "";
-    break;
-  }
+http::response RequestHandler::show_error_page(http::status status_code,
+                                               std::string message) {
+  std::ostringstream ss;
+  ss << "<!DOCTYPE html><html>"
+     << "<head><title>Error</title></head><body>"
+     << "<h1>" << status_code << " Error"
+     << "</h1>"
+     << "<p>"
+     << "Description: " << message << "</p>"
+     << "</body></html>";
+  std::string response_body = ss.str();
 
   http::response resp;
   resp.result(status_code);
-  resp.set(http::field::content_type, "text/plain");
+  resp.set(http::field::content_type, "text/html");
   resp.content_length(response_body.length());
   resp.body() = response_body;
   return resp;
@@ -57,26 +34,44 @@ EchoRequestHandler::handle_request(const http::request &req) const {
   return resp;
 }
 
-bool EchoRequestHandler::has_root(std::string root) const {
-  return roots.find(root) != roots.end();
+// shows error page if uri path does not match any of the other request handler
+// serving paths
+http::response
+NotFoundRequestHandler::handle_request(const http::request &req) const {
+  return RequestHandler::show_error_page(
+      http::status::not_found,
+      "Uri path " + std::string(req.target()) + " not found");
 }
 
+StaticFileRequestHandler::StaticFileRequestHandler(const std::string &location,
+                                                   const NginxConfig &config)
+    : location(location) {
+  std::vector<std::string> values = configLookup(config, {}, "root");
+  if (values.size() != 1) {
+    LOG_FATAL << "Invalid number of root specifiers for " << location
+              << ", only one root should be listed per location";
+  }
+
+  this->set_root_path(values[0]);
+}
+void StaticFileRequestHandler::set_root_path(std::string root_path) {
+  // remove any enclosing quotes
+  root = (root_path[0] == '"') ? root_path.substr(1, root_path.length() - 2)
+                               : root_path;
+  root = convertToAbsolutePath(root_path);
+}
 http::response
 StaticFileRequestHandler::handle_request(const http::request &req) const {
   std::string http_uri(req.target());
-  std::optional<std::string> root_opt = this->get_root_from_uri(http_uri);
-  if (!root_opt) {
-    return RequestHandler::get_stock_response(http::status::bad_request);
-  }
-
-  std::string content_type =
-      this->parse_content_type_from_uri(http_uri, root_opt.value());
-  std::string path = this->parse_path_from_uri(http_uri, root_opt.value());
+  std::string content_type = this->parse_content_type_from_uri(http_uri);
+  std::string path = this->parse_path_from_uri(http_uri);
   std::ifstream ifs(path, std::ifstream::in);
-  if (ifs.fail()) {
-    return RequestHandler::get_stock_response(http::status::not_found);
-  }
 
+  if (ifs.fail()) {
+
+    return RequestHandler::show_error_page(http::status::not_found,
+                                           "File " + http_uri + " not found");
+  }
   std::stringstream ss;
   char c;
   while (ifs.get(c)) {
@@ -92,30 +87,23 @@ StaticFileRequestHandler::handle_request(const http::request &req) const {
   return resp;
 }
 
-bool StaticFileRequestHandler::has_root(std::string root) const {
-  return root_to_base_dir.find(root) != root_to_base_dir.end();
-}
-
 /**
  * Parse relative file path of requested file
  **/
 std::string
-StaticFileRequestHandler::parse_path_from_uri(std::string uri,
-                                              std::string root) const {
-  boost::filesystem::path p(uri), root_path(root);
+StaticFileRequestHandler::parse_path_from_uri(std::string uri) const {
+  boost::filesystem::path p(uri), loc(location);
   std::string file_extension = p.extension().string();
-  auto it = root_to_base_dir.find(root);
-  std::string prefix = it == root_to_base_dir.end() ? "" : it->second;
-  return prefix + boost::filesystem::relative(p, root_path).string();
+  std::string prefix = root;
+  return prefix + boost::filesystem::relative(p, loc).string();
 }
 
 /**
  * Parse HTML content type of requested file
  **/
 std::string
-StaticFileRequestHandler::parse_content_type_from_uri(std::string uri,
-                                                      std::string root) const {
-  boost::filesystem::path p(uri), root_path(root);
+StaticFileRequestHandler::parse_content_type_from_uri(std::string uri) const {
+  boost::filesystem::path p(uri);
   std::string file_extension = p.extension().string();
   if (file_extension == ".txt")
     return "text/plain";
@@ -130,3 +118,15 @@ StaticFileRequestHandler::parse_content_type_from_uri(std::string uri,
   else
     return "text/plain";
 }
+
+DummyRequestHandler::DummyRequestHandler(const std::string &location)
+    : location(location){};
+
+std::string DummyRequestHandler::get_location() const { return location; }
+
+http::response
+DummyRequestHandler::handle_request(const http::request &req) const {
+  http::response resp;
+  return resp;
+}
+std::string RequestHandler::get_location() const { return ""; }

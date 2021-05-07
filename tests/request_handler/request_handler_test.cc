@@ -1,82 +1,40 @@
 #include "request_handler.h"
 #include "gtest/gtest.h"
 #include <optional>
-class EchoRequestHandlerTest : public testing::Test {
-protected:
-  EchoRequestHandler *echo_request_handler;
-  std::set<std::string> roots = {"/echo", "/echo2", "/echo/echo"};
-  void SetUp() override {
-    echo_request_handler = new EchoRequestHandler(roots);
-  }
-  void TearDown() override { delete echo_request_handler; }
-};
 
-TEST_F(EchoRequestHandlerTest, EchoGetRootFound) {
-  std::optional<std::string> root_opt =
-      echo_request_handler->get_root_from_uri("/echo/file.txt");
-  EXPECT_EQ(root_opt.value(), "/echo");
-  EXPECT_TRUE(root_opt.has_value());
-}
-
-TEST_F(EchoRequestHandlerTest, EchoGetRootFound2) {
-  std::optional<std::string> root_opt =
-      echo_request_handler->get_root_from_uri("/echo/morestuff/file.txt");
-  EXPECT_EQ(root_opt.value(), "/echo");
-  EXPECT_TRUE(root_opt.has_value());
-}
-
-TEST_F(EchoRequestHandlerTest, EchoGetRootFoundMultiLevel) {
-  std::optional<std::string> root_opt =
-      echo_request_handler->get_root_from_uri("/echo/echo/file.txt");
-  EXPECT_EQ(root_opt.value(), "/echo/echo");
-  EXPECT_TRUE(root_opt.has_value());
-}
-
-TEST_F(EchoRequestHandlerTest, EchoGetRootNotFound) {
-  std::optional<std::string> root_opt =
-      echo_request_handler->get_root_from_uri("/nope/file.txt");
-  EXPECT_FALSE(root_opt.has_value());
-}
-
+NginxConfigParser config_parser;
+NginxConfig static_config;
+bool success1 = config_parser.Parse("static_file_config", &static_config);
+NginxConfig empty_config;
+bool success2 = config_parser.Parse("empty_config", &empty_config);
 class StaticFileRequestHandlerTest : public testing::Test {
 protected:
   StaticFileRequestHandler *static_file_request_handler;
-  std::map<std::string, std::string> root_to_base_dir = {
-      {"/static", "/test"}, {"/static2", "/test2"}, {"/static/static", "/"}};
   void SetUp() override {
     static_file_request_handler =
-        new StaticFileRequestHandler(root_to_base_dir);
+        new StaticFileRequestHandler("/files", static_config);
   }
   void TearDown() override { delete static_file_request_handler; }
 };
 
-TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootFound) {
-  std::optional<std::string> root_opt =
-      static_file_request_handler->get_root_from_uri("/static/file.txt");
-  EXPECT_EQ(root_opt.value(), "/static");
-  EXPECT_TRUE(root_opt.has_value());
-}
-
-TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootFound2) {
-  std::optional<std::string> root_opt =
-      static_file_request_handler->get_root_from_uri(
-          "/static2/morestuff/file.txt");
-  EXPECT_EQ(root_opt.value(), "/static2");
-  EXPECT_TRUE(root_opt.has_value());
-}
-
-TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootFoundMultiLevel) {
-  std::optional<std::string> root_opt =
-      static_file_request_handler->get_root_from_uri("/static/static/file.txt");
-  EXPECT_EQ(root_opt.value(), "/static/static");
-  EXPECT_TRUE(root_opt.has_value());
-}
-
-TEST_F(StaticFileRequestHandlerTest, StaticFileGetRootNotFound) {
+TEST_F(StaticFileRequestHandlerTest, StaticFileFound) {
   std::string root;
-  std::optional<std::string> root_opt =
-      static_file_request_handler->get_root_from_uri("/nope/file.txt");
-  EXPECT_FALSE(root_opt.has_value());
+  http::request req;
+  req.target("/files/static_file.txt");
+  std::stringstream received_response;
+  received_response << static_file_request_handler->handle_request(req);
+
+  std::stringstream expected_response;
+
+  expected_response << "HTTP/1.1 200 OK"
+                    << "\r\n"
+                    << "Content-Type: text/plain\r\n"
+                    << "Content-Length: 12"
+                    << "\r\n\r\n"
+                    << "test content";
+
+  // get response from server through mock socket
+  EXPECT_EQ(expected_response.str(), received_response.str());
 }
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileNotFound) {
@@ -86,13 +44,92 @@ TEST_F(StaticFileRequestHandlerTest, StaticFileNotFound) {
   std::stringstream received_response;
   received_response << static_file_request_handler->handle_request(req);
 
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body
+      << "<!DOCTYPE html><html>"
+      << "<head><title>Error</title></head><body>"
+      << "<h1>Not Found Error</h1>"
+      << "<p>"
+      << "Description: File /static/nope/file.txt not found</p>"
+      << "</body></html>";
+  expected_response_header << "HTTP/1.1 404 Not Found"
+                           << "\r\n"
+                           << "Content-Type: text/html\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+
+  // get response from server through mock socket
+  EXPECT_EQ(expected_response, received_response.str());
+}
+
+class EchoRequestHandlerTest : public testing::Test {
+protected:
+  EchoRequestHandler *echo_request_handler;
+
+  void SetUp() override {
+    echo_request_handler = new EchoRequestHandler("/echo", empty_config);
+  }
+  void TearDown() override { delete echo_request_handler; }
+};
+
+TEST_F(EchoRequestHandlerTest, EchoResponse) {
+  std::string root;
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/echo");
+  std::stringstream received_response;
+  received_response << echo_request_handler->handle_request(req);
+
   std::stringstream expected_response;
-  expected_response << "HTTP/1.1 404 Not Found"
+  expected_response << "HTTP/1.1 200 OK"
                     << "\r\n"
                     << "Content-Type: text/plain\r\n"
-                    << "Content-Length: 15\r\n\r\n"
-                    << "File not found\n";
+                    << "Content-Length: 22\r\n\r\n"
+                    << "GET /echo HTTP/1.1\r\n\r\n";
 
   // get response from server through mock socket
   EXPECT_EQ(expected_response.str(), received_response.str());
+}
+
+class NotFoundRequestHandlerTest : public testing::Test {
+protected:
+  NotFoundRequestHandler *not_found_request_handler;
+
+  void SetUp() override {
+    not_found_request_handler = new NotFoundRequestHandler("/", empty_config);
+  }
+  void TearDown() override { delete not_found_request_handler; }
+};
+
+TEST_F(NotFoundRequestHandlerTest, NotFoundResponse) {
+  std::string root;
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/doesnotexist/something.txt");
+  std::stringstream received_response;
+  received_response << not_found_request_handler->handle_request(req);
+
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body
+      << "<!DOCTYPE html><html>"
+      << "<head><title>Error</title></head><body>"
+      << "<h1>Not Found Error</h1>"
+      << "<p>"
+      << "Description: Uri path /doesnotexist/something.txt not found</p>"
+      << "</body></html>";
+  expected_response_header << "HTTP/1.1 404 Not Found"
+                           << "\r\n"
+                           << "Content-Type: text/html\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+  // get response from server through mock socket
+  EXPECT_EQ(expected_response, received_response.str());
 }

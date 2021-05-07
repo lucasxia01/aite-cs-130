@@ -21,7 +21,7 @@ protected:
   session<mock_socket> *testSess;
   server *testServer;
   void SetUp(void) {
-    testServer = new server(io_service, 8080, echo_roots, root_to_base_dir);
+    testServer = new server(io_service, 8080);
     testSess = new session<mock_socket>(io_service, testServer);
   }
   void TearDown(void) {
@@ -117,7 +117,7 @@ TEST_F(SessionTest, NegativeContentLength) {
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   std::ostringstream expected_response;
-  expected_response << RequestHandler::get_stock_response(
+  expected_response << RequestHandler::show_error_page(
       http::status::bad_request);
   EXPECT_EQ(expected_response.str(), obtained_response);
 }
@@ -133,7 +133,7 @@ TEST_F(SessionTest, InvalidContentLength) {
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   std::ostringstream expected_response;
-  expected_response << RequestHandler::get_stock_response(
+  expected_response << RequestHandler::show_error_page(
       http::status::bad_request);
   EXPECT_EQ(expected_response.str(), obtained_response);
 }
