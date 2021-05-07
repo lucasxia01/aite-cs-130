@@ -1,5 +1,5 @@
 HTTP/1.1 400 Bad Request
-Content-Type: text/plain
-Content-Length: 16
+Content-Type: text/html
+Content-Length: 161
 
-Invalid request
+<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Bad Request Error</h1><p>Description: Invalid request headers or content length</p></body></html>

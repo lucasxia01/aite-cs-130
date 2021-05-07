@@ -1,13 +1,26 @@
 
 server {
-    port 80;
-    
-    echo {
-        root /echo /echo_v2 /echo_v3;
-    }
+  port 80; # port to serve on
 
-    static {
-        root /static /static_root_dir /static_dev;
-        path /static_files/ / /usr/src/projects/aite/;
-    }
+  location /echo EchoHandler {
+
+  }
+  location /echo_v2 EchoHandler {
+
+  }
+  location /echo_v3/ EchoHandler {
+
+  }
+  location /static StaticHandler {
+    root "./static_files/";
+  }
+  location /static_root_dir StaticHandler {
+    root "/"; # root of directory
+  }
+  location /static_dev StaticHandler {
+    root .;
+  }
+  location / NotFoundHandler {
+
+  }
 }

@@ -91,7 +91,7 @@ fi
 echo "--------- STARTING test_invalid_path_curl ---------"
 
 curl localhost:8080/invalidpath -o test_output/temp_response.txt -s -S
-cmp -s test_output/temp_response.txt <(echo "Invalid request")
+cmp -s test_output/temp_response.txt <(echo -n '<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Bad Request Error</h1><p>Description: Error getting handler for uri /invalidpath</p></body></html>')
 
 result=$?
 
@@ -137,7 +137,7 @@ fi
 echo "--------- STARTING test_static_file_not_found_curl ---------"
 cd static_test_output
 curl localhost:8080/static/tests/static_test_files/not_bubujingxin.png -o not.png -s -S
-cmp -s not.png <(echo "File not found")
+cmp -s not.png <(echo -n '<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Not Found Error</h1><p>Description: File /static/tests/static_test_files/not_bubujingxin.png not found</p></body></html>')
 result=$?
 cd ..
 if [ $result -ne 0 ]; then

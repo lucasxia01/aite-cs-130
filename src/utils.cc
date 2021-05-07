@@ -37,7 +37,7 @@ std::vector<std::string> configLookup(const NginxConfig &config,
   return {};
 }
 
-int getPortNumber(NginxConfig config) {
+int getPortNumber(const NginxConfig &config) {
   // we want to look for the port number in the server block
   std::vector<std::string> block_names = {"server"};
   // field name should be port
@@ -50,59 +50,10 @@ int getPortNumber(NginxConfig config) {
   return std::atoi(field_values[0].c_str());
 }
 
-std::map<std::string, std::string> getRootToBaseDirMapping(NginxConfig config) {
-  std::vector<std::string> block_names = {"server", "static"};
-  std::vector<std::string> roots = configLookup(config, block_names, "root");
-  std::vector<std::string> base_dirs =
-      configLookup(config, block_names, "path");
-
-  std::map<std::string, std::string> root_to_base_dir;
-
-  // if the number of roots is not equal to the number of base_dirs, return
-  // empty map
-  if (roots.size() != base_dirs.size())
-    return root_to_base_dir;
-  for (size_t i = 0; i < roots.size(); i++) {
-    root_to_base_dir[roots[i]] = base_dirs[i];
-  }
-  return root_to_base_dir;
-}
-
-// return is error code
-bool parseConfigFile(const char *file_name, int &port,
-                     std::set<std::string> &echo_roots,
-                     std::map<std::string, std::string> &root_to_base_dir) {
-  NginxConfigParser config_parser;
-  NginxConfig config;
-  bool success = config_parser.Parse(file_name, &config);
-  if (!success) {
-    LOG_FATAL << "Failed to parse config file";
-    return false;
-  }
-  port = getPortNumber(config);
-  if (port == -1) {
-    LOG_FATAL << "Could not parse a port number from config file";
-    return false;
-  }
-  std::vector<std::string> list_echo_roots =
-      configLookup(config, {"server", "echo"}, "root");
-  echo_roots =
-      std::set<std::string>(list_echo_roots.begin(), list_echo_roots.end());
-  if (echo_roots.empty()) {
-    LOG_FATAL << "Could not parse an echo root";
-    return false;
-  }
-  LOG_DEBUG << "first echo root: " << *echo_roots.begin();
-
-  root_to_base_dir = getRootToBaseDirMapping(config);
-  if (root_to_base_dir.empty()) {
-    LOG_FATAL << "Could not parse a mapping";
-    return false;
-  }
-  return true;
-}
-
 std::string convertToAbsolutePath(std::string path) {
+  // remove any enclosing quotes
+  path = (path[0] == '"' && path[path.length()-1] == '"') ? path.substr(1, path.length() - 2)
+                               : path;
   boost::filesystem::path full_path = boost::filesystem::system_complete(path);
   path = full_path.string();
   // simplify '.' and '..' directories

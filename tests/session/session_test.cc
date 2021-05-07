@@ -15,13 +15,45 @@ class SessionTest : public testing::Test {
   std::map<std::string, std::string> root_to_base_dir = {
       {"/static", "/usr/src/projects/aite/"}};
 
+  std::unique_ptr<NginxConfig> config = 
+    std::make_unique<NginxConfig>(
+      NginxConfig{{
+        std::make_shared<NginxConfigStatement>(NginxConfigStatement{{"server"},
+          std::make_unique<NginxConfig>(
+            NginxConfig{{
+              std::make_shared<NginxConfigStatement>(
+                NginxConfigStatement{{"port", "80"}, nullptr}
+              ),
+              std::make_shared<NginxConfigStatement>(
+                NginxConfigStatement{{"location", "/echo", "EchoHandler"}, 
+                  std::make_unique<NginxConfig>(
+                      NginxConfig{}
+                  )
+                }
+              ),
+              std::make_shared<NginxConfigStatement>(
+                NginxConfigStatement{{"location", "/static", "StaticHandler"}, 
+                  std::make_unique<NginxConfig>(
+                    NginxConfig{{
+                      std::make_shared<NginxConfigStatement>(
+                        NginxConfigStatement{{"root", "/usr/src/projects/aite/"}, nullptr}
+                      )
+                    }}
+                  )
+                }
+              )
+            }}
+          )
+        })
+      }}
+    );
 protected:
   boost::asio::io_service io_service;
   boost::system::error_code error;
   session<mock_socket> *testSess;
   server *testServer;
   void SetUp(void) {
-    testServer = new server(io_service, 8080);
+    testServer = new server(io_service, *config);
     testSess = new session<mock_socket>(io_service, testServer);
   }
   void TearDown(void) {
@@ -118,7 +150,7 @@ TEST_F(SessionTest, NegativeContentLength) {
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   std::ostringstream expected_response;
   expected_response << RequestHandler::show_error_page(
-      http::status::bad_request);
+      http::status::bad_request, "Invalid request headers or content length");
   EXPECT_EQ(expected_response.str(), obtained_response);
 }
 
@@ -134,6 +166,6 @@ TEST_F(SessionTest, InvalidContentLength) {
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   std::ostringstream expected_response;
   expected_response << RequestHandler::show_error_page(
-      http::status::bad_request);
+      http::status::bad_request, "Invalid request headers or content length");
   EXPECT_EQ(expected_response.str(), obtained_response);
 }

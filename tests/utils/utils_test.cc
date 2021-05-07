@@ -86,24 +86,6 @@ TEST_F(UtilsTest, getPortNotFound) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(UtilsTest, parseConfigFile) {
-  int port;
-  std::set<std::string> echo_roots;
-  std::map<std::string, std::string> root_to_base_dir;
-  bool success =
-      parseConfigFile("basic_config", port, echo_roots, root_to_base_dir);
-  EXPECT_EQ(port, 8080);
-  EXPECT_EQ(echo_roots.size(), 2);
-  EXPECT_TRUE(echo_roots.find("/echo") != echo_roots.end());
-  EXPECT_TRUE(echo_roots.find("/echo2") != echo_roots.end());
-  EXPECT_EQ(root_to_base_dir.size(), 2);
-  EXPECT_TRUE(root_to_base_dir.find("/static") != root_to_base_dir.end());
-  EXPECT_TRUE(root_to_base_dir.find("/static2") != root_to_base_dir.end());
-  EXPECT_TRUE(root_to_base_dir.find("/random") == root_to_base_dir.end());
-  EXPECT_TRUE(root_to_base_dir.find("/nope") == root_to_base_dir.end());
-  EXPECT_TRUE(success);
-}
-
 TEST(AbsolutePath, relativePath) {
   std::string cwd = std::filesystem::current_path().parent_path();
   std::string expected = cwd + "/path";

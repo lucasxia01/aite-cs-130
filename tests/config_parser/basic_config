@@ -3,13 +3,15 @@ server {
   port  8080;
   server_name foo.com;
 
-  echo {
-    root /echo /echo2;
+  location /echo EchoHandler {
   }
-
-  static {
-    root /static /static2;
-    path /usr/src/projects/aite/ /doesnotexist;
+  location /echo2 EchoHandler {
+  }
+  location /static StaticHandler {
+    root ../../;
+  }
+  location /static2 StaticHandler {
+    root "/doesnotexist";
   }
 
   stupid {

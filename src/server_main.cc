@@ -29,16 +29,15 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     boost::asio::io_service io_service;
-
-    int port_num;
-    std::set<std::string> echo_roots;
-    std::map<std::string, std::string> root_to_base_dir;
+    NginxConfigParser config_parser;
+    NginxConfig config; 
     LOG_DEBUG << "Attempting to parse config file";
-    parseConfigFile(argv[1], port_num, echo_roots, root_to_base_dir);
-
-    LOG_INFO << "Successfully parsed port number: " << port_num;
-    server s(io_service, port_num);
-    LOG_INFO << "Running server on port number: " << port_num;
+    bool success = config_parser.Parse(argv[1], &config);
+    if (!success) {
+      LOG_ERROR << "Failed to parse config file";
+      return 1;
+    }
+    server s(io_service, config);
 
     boost::asio::signal_set signals(io_service, SIGINT);
     signals.async_wait(close_handler);

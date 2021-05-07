@@ -5,11 +5,11 @@
 
 class ServerTest : public testing::Test {
   boost::asio::io_service io_service;
-  short port = 8080;
+  NginxConfig config;
 
 protected:
   server *s;
-  void SetUp() override { s = new server(io_service, port); }
+  void SetUp() override { s = new server(io_service, config); }
   void TearDown() override { delete s; }
 };
 

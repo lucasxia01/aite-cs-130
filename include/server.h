@@ -17,17 +17,17 @@ template <class TSocket> class session;
 
 class server {
 public:
-  server(boost::asio::io_service &io_service, short port);
+  server(boost::asio::io_service &io_service, const NginxConfig &config);
 
   session<tcp_socket_wrapper> *start_accept();
 
   void handle_accept(session<tcp_socket_wrapper> *new_session,
                      const boost::system::error_code &error);
 
+  
   const RequestHandler *get_request_handler(std::string request_uri) const;
   boost::asio::io_service &io_service_;
-  tcp::acceptor acceptor_;
-
+  std::unique_ptr<tcp::acceptor> acceptor_;
   std::map<const std::string, const RequestHandler *> location_to_handler_;
 
 private:
@@ -36,6 +36,7 @@ private:
     HANDLER_STATIC_FILE = 1,
     HANDLER_NOT_FOUND = 2
   };
+  void getHandlers(const NginxConfig &config);
   void create_and_add_handler(HandlerType type, const std::string &location,
                               const NginxConfig &config);
 };
