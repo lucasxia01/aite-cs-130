@@ -55,6 +55,7 @@ void server::create_and_add_handler(HandlerType type,
                                     const std::string &location,
                                     const NginxConfig &config) {
   std::string loc = convertToAbsolutePath(location);
+  LOG_DEBUG << "Location is " << loc;
   const RequestHandler *handler;
   switch (type) {
   case HANDLER_ECHO:
@@ -105,11 +106,17 @@ server::get_request_handler(std::string request_uri) const {
   boost::filesystem::path uri(convertToAbsolutePath(request_uri));
   // look through all path prefixes and check if any match a valid location
   // prioritizing longest path prefix
+  LOG_DEBUG << "Parsed request location: " << uri.string();
   while (uri.has_parent_path()) {
     if (location_to_handler_.find(uri.string()) != location_to_handler_.end()) {
       return location_to_handler_.at(uri.string());
     }
     uri = uri.parent_path();
   }
-  return nullptr;
+  LOG_DEBUG << "Ending uri: " << uri.string();
+  if (location_to_handler_.find("") == location_to_handler_.end()) {
+    LOG_ERROR << "404 Handler not found at root /";
+    return nullptr;
+  }
+  return location_to_handler_.at("");
 }
