@@ -111,7 +111,7 @@ TEST_F(SessionTest, ReadBody) {
 
 TEST_F(SessionTest, StaticFile) {
   std::string file_content = "test content";
-  const char *path = "/usr/src/projects/tests/static_test_files/file.txt";
+  const char *path = "/usr/src/projects/aite/tests/static_test_files/file.txt";
   std::ofstream f(path);
   f << file_content;
   f.close();
