@@ -82,3 +82,23 @@ std::string convertToAbsolutePath(std::string path) {
 
   return path;
 }
+
+http::response show_error_page(http::status status_code,
+                                               std::string message) {
+  std::ostringstream ss;
+  ss << "<!DOCTYPE html><html>"
+     << "<head><title>Error</title></head><body>"
+     << "<h1>" << status_code << " Error"
+     << "</h1>"
+     << "<p>"
+     << "Description: " << message << "</p>"
+     << "</body></html>";
+  std::string response_body = ss.str();
+
+  http::response resp;
+  resp.result(status_code);
+  resp.set(http::field::content_type, "text/html");
+  resp.content_length(response_body.length());
+  resp.body() = response_body;
+  return resp;
+}

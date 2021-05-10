@@ -36,7 +36,7 @@ void session<TSocket>::read_body(size_t content_length) {
                        body_buffer, body_buffer + bytes_transferred));
                    response_ = request_handler_
                                    ? request_handler_->handle_request(request_)
-                                   : RequestHandler::show_error_page(
+                                   : show_error_page(
                                          http::status::bad_request);
                    session::write();
                  } else {
@@ -75,7 +75,7 @@ void session<TSocket>::handle_read_header(
       LOG_DEBUG << socket_.get_endpoint_address()
                 << ": Bad request header or content length...\n"
                 << "\tContent length: " << content_length;
-      response_ = RequestHandler::show_error_page(
+      response_ = show_error_page(
           http::status::bad_request,
           "Invalid request headers or content length");
       session::write();
@@ -90,7 +90,7 @@ void session<TSocket>::handle_read_header(
         // Bad URI
         LOG_DEBUG << socket_.get_endpoint_address()
                   << ": Bad URI:" << request_.target();
-        response_ = RequestHandler::show_error_page(
+        response_ = show_error_page(
             http::status::bad_request,
             "Error getting handler for uri " + std::string(request_.target()));
         session::write();

@@ -1,24 +1,6 @@
 #include "request_handler.h"
 
-http::response RequestHandler::show_error_page(http::status status_code,
-                                               std::string message) {
-  std::ostringstream ss;
-  ss << "<!DOCTYPE html><html>"
-     << "<head><title>Error</title></head><body>"
-     << "<h1>" << status_code << " Error"
-     << "</h1>"
-     << "<p>"
-     << "Description: " << message << "</p>"
-     << "</body></html>";
-  std::string response_body = ss.str();
 
-  http::response resp;
-  resp.result(status_code);
-  resp.set(http::field::content_type, "text/html");
-  resp.content_length(response_body.length());
-  resp.body() = response_body;
-  return resp;
-}
 
 http::response
 EchoRequestHandler::handle_request(const http::request &req) const {
@@ -38,7 +20,7 @@ EchoRequestHandler::handle_request(const http::request &req) const {
 // serving paths
 http::response
 NotFoundRequestHandler::handle_request(const http::request &req) const {
-  return RequestHandler::show_error_page(
+  return show_error_page(
       http::status::not_found,
       "Uri path " + std::string(req.target()) + " not found");
 }
@@ -75,7 +57,7 @@ StaticFileRequestHandler::handle_request(const http::request &req) const {
 
   if (ifs.fail()) {
 
-    return RequestHandler::show_error_page(http::status::not_found,
+    return show_error_page(http::status::not_found,
                                            "File " + http_uri + " not found");
   }
   std::stringstream ss;
@@ -135,4 +117,3 @@ DummyRequestHandler::handle_request(const http::request &req) const {
   http::response resp;
   return resp;
 }
-std::string RequestHandler::get_location() const { return ""; }

@@ -111,7 +111,7 @@ TEST_F(SessionTest, ReadBody) {
 
 TEST_F(SessionTest, StaticFile) {
   std::string file_content = "test content";
-  const char *path = "/usr/src/projects/aite/tests/static_test_files/file.txt";
+  const char *path = "/usr/src/projects/tests/static_test_files/file.txt";
   std::ofstream f(path);
   f << file_content;
   f.close();
@@ -149,7 +149,7 @@ TEST_F(SessionTest, NegativeContentLength) {
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   std::ostringstream expected_response;
-  expected_response << RequestHandler::show_error_page(
+  expected_response << show_error_page(
       http::status::bad_request, "Invalid request headers or content length");
   EXPECT_EQ(expected_response.str(), obtained_response);
 }
@@ -165,7 +165,7 @@ TEST_F(SessionTest, InvalidContentLength) {
   // get response from server through mock socket
   std::string obtained_response = (testSess->socket()).get_output_buffer();
   std::ostringstream expected_response;
-  expected_response << RequestHandler::show_error_page(
+  expected_response << show_error_page(
       http::status::bad_request, "Invalid request headers or content length");
   EXPECT_EQ(expected_response.str(), obtained_response);
 }

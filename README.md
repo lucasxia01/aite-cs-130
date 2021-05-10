@@ -82,7 +82,24 @@ server {
   }
 }
 ```
-
+## Example of an existing Echo Handler
+The echo handler echo's a client http request as the http response
+```cpp
+/**
+ * Handler to echo requests back to client
+ */
+class EchoRequestHandler : public RequestHandler {
+public:
+  EchoRequestHandler(const std::string &location, const NginxConfig &config){};
+  /**
+   * echoes http request to client
+   *
+   * @param req http request from client
+   * @return http response with echoed http request as body
+   */
+  http::response handle_request(const http::request &req) const;
+};
+```
 ## Adding Request Handler(s)
 ### 1. In Server
  To add a Request Handler, navigate to `server.h` and add your handler to the enum HandlerType. In `server::create_and_add_handler()` in `server.cc` add an additional case with the type of your handler. For example if your new handler was specified like this in the config file:

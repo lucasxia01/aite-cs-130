@@ -27,16 +27,7 @@ class RequestHandler {
 public:
   RequestHandler() {}
   virtual http::response handle_request(const http::request &req) const = 0;
-  virtual std::string get_location() const;
-  /**
-   * generates error page given http status and error description details
-   *
-   * @param status_code http status code
-   * @param message error description message, defaulted to N/A
-   * @return html error page http response
-   */
-  static http::response show_error_page(http::status status_code,
-                                        std::string message = "N/A");
+
 };
 
 /**
@@ -114,6 +105,7 @@ class DummyRequestHandler : public RequestHandler {
 public:
   DummyRequestHandler(const std::string &location);
   http::response handle_request(const http::request &req) const;
+
   std::string get_location() const;
 
 private:
