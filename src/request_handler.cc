@@ -59,6 +59,15 @@ void StaticFileRequestHandler::set_root_path(std::string root_path) {
   root = (root_path[0] == '"') ? root_path.substr(1, root_path.length() - 2)
                                : root_path;
   root = convertToAbsolutePath(root_path);
+  std::filesystem::path p(root);
+  std::error_code err;
+
+  if (std::filesystem::is_directory(p, err)) {
+    root = (root.back() != '/') ? root + "/" : root;
+  }
+  if (err) {
+    LOG_ERROR << "Error checking if path is a directory";
+  }
 }
 http::response
 StaticFileRequestHandler::handle_request(const http::request &req) const {

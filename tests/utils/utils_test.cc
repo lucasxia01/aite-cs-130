@@ -1,13 +1,15 @@
 #include "utils.h"
 #include "gtest/gtest.h"
+#include <string.h>
+#include <filesystem>
 
-class ServerUtilsTest : public testing::Test {
+class UtilsTest : public testing::Test {
 protected:
   NginxConfigParser parser;
   NginxConfig out_config;
 };
 
-TEST_F(ServerUtilsTest, OneBlockDeepPortLookup) {
+TEST_F(UtilsTest, OneBlockDeepPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"server"};
   std::string field_name = "port";
@@ -18,7 +20,7 @@ TEST_F(ServerUtilsTest, OneBlockDeepPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, TwoBlockDeepPortLookup) {
+TEST_F(UtilsTest, TwoBlockDeepPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"server", "stupid"};
   std::string field_name = "port";
@@ -29,7 +31,7 @@ TEST_F(ServerUtilsTest, TwoBlockDeepPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, ThreeBlockDeepPortLookup) {
+TEST_F(UtilsTest, ThreeBlockDeepPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"server", "garbage", "deepergarbage"};
   std::string field_name = "port";
@@ -40,7 +42,7 @@ TEST_F(ServerUtilsTest, ThreeBlockDeepPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, SecondBlockPortLookup) {
+TEST_F(UtilsTest, SecondBlockPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"wtf"};
   std::string field_name = "port";
@@ -51,7 +53,7 @@ TEST_F(ServerUtilsTest, SecondBlockPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, WrongBlockPortLookup) {
+TEST_F(UtilsTest, WrongBlockPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"thisdoesntexist"};
   std::string field_name = "port";
@@ -61,7 +63,7 @@ TEST_F(ServerUtilsTest, WrongBlockPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, WrongFieldPortLookup) {
+TEST_F(UtilsTest, WrongFieldPortLookup) {
   bool success = parser.Parse("basic_config", &out_config);
   std::vector<std::string> block_names = {"server"};
   std::string field_name = "ucantseeme";
@@ -71,20 +73,20 @@ TEST_F(ServerUtilsTest, WrongFieldPortLookup) {
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, getPortFound) {
+TEST_F(UtilsTest, getPortFound) {
   bool success = parser.Parse("basic_config", &out_config);
   size_t port = getPortNumber(out_config);
   EXPECT_EQ(8080, port);
   EXPECT_TRUE(success);
 }
-TEST_F(ServerUtilsTest, getPortNotFound) {
+TEST_F(UtilsTest, getPortNotFound) {
   bool success = parser.Parse("empty_config", &out_config);
   size_t port = getPortNumber(out_config);
   EXPECT_EQ(-1, port);
   EXPECT_TRUE(success);
 }
 
-TEST_F(ServerUtilsTest, parseConfigFile) {
+TEST_F(UtilsTest, parseConfigFile) {
   int port;
   std::set<std::string> echo_roots;
   std::map<std::string, std::string> root_to_base_dir;
@@ -100,4 +102,19 @@ TEST_F(ServerUtilsTest, parseConfigFile) {
   EXPECT_TRUE(root_to_base_dir.find("/random") == root_to_base_dir.end());
   EXPECT_TRUE(root_to_base_dir.find("/nope") == root_to_base_dir.end());
   EXPECT_TRUE(success);
+}
+
+TEST(AbsolutePath, relativePath) {
+  std::string cwd = std::filesystem::current_path().parent_path();
+  std::string expected = cwd + "/path";
+  std::string path = "../some_random/.././path";
+
+  std::string res = convertToAbsolutePath(path);
+  EXPECT_EQ(res, expected);
+}
+
+TEST(AbsolutePath, alreadyAbsolute) {
+  std::string path = "/some_random/path";
+  std::string res = convertToAbsolutePath(path);
+  EXPECT_EQ(res, path);
 }

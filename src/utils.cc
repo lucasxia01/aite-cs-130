@@ -128,14 +128,6 @@ std::string convertToAbsolutePath(std::string path) {
   for (auto dir : path_comps) {
     path += "/" + dir;
   }
-  std::filesystem::path p(path);
-  std::error_code err;
-
-  if (std::filesystem::is_directory(p, err)) {
-    path = (path.back() != '/') ? path + "/" : path;
-  }
-  if (err) {
-    LOG_ERROR << "Error checking if path is a directory";
-  }
+  
   return path;
 }
