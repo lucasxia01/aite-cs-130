@@ -206,8 +206,10 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config) {
           last_token_type == TOKEN_TYPE_STATEMENT_END ||
           last_token_type == TOKEN_TYPE_START_BLOCK ||
           last_token_type == TOKEN_TYPE_END_BLOCK ||
-          last_token_type == TOKEN_TYPE_NORMAL) {
-        if (last_token_type != TOKEN_TYPE_NORMAL) {
+          last_token_type == TOKEN_TYPE_NORMAL ||
+          last_token_type == TOKEN_TYPE_QUOTED_STRING) {
+        if (last_token_type != TOKEN_TYPE_NORMAL &&
+          last_token_type != TOKEN_TYPE_QUOTED_STRING) {
           config_stack.top()->statements_.emplace_back(
               new NginxConfigStatement);
         }
