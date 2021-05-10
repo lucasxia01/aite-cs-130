@@ -20,7 +20,9 @@ namespace http = beast::http;
 
 #define response response<http::string_body>
 #define request request<http::string_body>
-
+/**
+ * Abstract base class for request handlers
+ */
 class RequestHandler {
 public:
   RequestHandler() {}
@@ -37,6 +39,9 @@ public:
                                         std::string message = "N/A");
 };
 
+/**
+ * Handler to echo requests back to client
+ */
 class EchoRequestHandler : public RequestHandler {
 public:
   EchoRequestHandler(const std::string &location, const NginxConfig &config){};
@@ -49,6 +54,9 @@ public:
   http::response handle_request(const http::request &req) const;
 };
 
+/**
+ * Handler that handles 404 not found errors
+ */
 class NotFoundRequestHandler : public RequestHandler {
 public:
   NotFoundRequestHandler(const std::string &location,
@@ -62,6 +70,9 @@ public:
   http::response handle_request(const http::request &req) const;
 };
 
+/**
+ * Handler that serves client the requested static files
+ */
 class StaticFileRequestHandler : public RequestHandler {
 public:
   StaticFileRequestHandler(const std::string &location,
@@ -96,6 +107,9 @@ private:
   const std::string location; // serving path of this request handler
 };
 
+/**
+ * Handler that's soley used for testing purposes
+ */
 class DummyRequestHandler : public RequestHandler {
 public:
   DummyRequestHandler(const std::string &location);

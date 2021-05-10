@@ -19,8 +19,9 @@ class server {
 public:
   server(boost::asio::io_service &io_service, const NginxConfig &config);
 
+  // starts a session
   session<tcp_socket_wrapper> *start_accept();
-
+  // callback function for start_accept
   void handle_accept(session<tcp_socket_wrapper> *new_session,
                      const boost::system::error_code &error);
 
@@ -31,6 +32,7 @@ public:
   std::map<const std::string, const RequestHandler *> location_to_handler_;
 
 private:
+  // different request handler types supported
   enum HandlerType {
     HANDLER_ECHO = 0,
     HANDLER_STATIC_FILE = 1,

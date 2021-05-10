@@ -79,6 +79,6 @@ std::string convertToAbsolutePath(std::string path) {
   for (auto dir : path_comps) {
     path += "/" + dir;
   }
-  
+
   return path;
 }

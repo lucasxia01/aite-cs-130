@@ -13,7 +13,10 @@
 #define LOG_WARNING BOOST_LOG_TRIVIAL(warning)
 #define LOG_ERROR BOOST_LOG_TRIVIAL(error)
 #define LOG_FATAL BOOST_LOG_TRIVIAL(fatal)
-
+/**
+ * Boost logger that's set to generate a new log file every day at midnight
+ * and/or when a file reaches 10MiB, also logs to console
+ */
 class Logger {
 public:
   static void init();

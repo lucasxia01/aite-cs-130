@@ -47,6 +47,42 @@ To launch the server (from the build directory) run the following command
 $ ./bin/server ../server_config
 ```  
 
+## Config File
+The config file allows for configurable port numbers, and handler serving paths. The handlers are configured in location-major handler-typed format.
+
+Relative paths for static file handlers are also supported and are relative with respected to the current working directory of the server.
+
+The config file uses "#" for comments.
+
+Strings can be optionally quoted with the " character to support strings with spaces
+```
+server {
+  port 80; # port to serve on
+
+  location /echo EchoHandler {
+
+  }
+  location /echo_v2 EchoHandler {
+
+  }
+  location /echo_v3/ EchoHandler {
+
+  }
+  location /static StaticHandler {
+    root "./static_files/";
+  }
+  location /static_root_dir StaticHandler {
+    root "/"; # root of directory
+  }
+  location /static_dev StaticHandler {
+    root .;
+  }
+  location / NotFoundHandler {
+
+  }
+}
+```
+
 ## Adding Request Handler(s)
 ### 1. In Server
  To add a Request Handler, navigate to `server.h` and add your handler to the enum HandlerType. In `server::create_and_add_handler()` in `server.cc` add an additional case with the type of your handler. For example if your new handler was specified like this in the config file:
@@ -68,6 +104,7 @@ void server::create_and_add_handler(HandlerType handler, const std::string &loca
   case HANDLER_NOT_FOUND:
     handler = new NotFoundRequestHandler(loc, config);
     break;
+  //beginning of code addition
   case HANDLER_FOO:
     handler = new FooRequestHandler(loc, config);
     break;

@@ -1,7 +1,7 @@
 #include "utils.h"
 #include "gtest/gtest.h"
-#include <string.h>
 #include <filesystem>
+#include <string.h>
 
 class UtilsTest : public testing::Test {
 protected:
