@@ -48,6 +48,7 @@ add_library(request_parser_lib src/request_parser.cc)
 add_library(utils src/utils.cc)
 add_library(logger_lib src/logger.cc)
 add_library(request_handler_lib src/request_handler.cc)
+add_library(http_client_lib src/http_client.cc)
 
 # Add logger dependencies
 target_link_libraries(config_parser_lib logger_lib)
@@ -63,7 +64,7 @@ target_link_libraries(server_lib session_lib utils request_handler_lib)
 target_link_libraries(utils config_parser_lib)
 
 # add config_parser dependency on request_handler_lib
-target_link_libraries(request_handler_lib config_parser_lib utils)
+target_link_libraries(request_handler_lib http_client_lib config_parser_lib utils)
 
 # Creates executable
 add_executable(server src/server_main.cc)

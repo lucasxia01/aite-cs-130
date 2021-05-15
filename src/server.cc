@@ -37,6 +37,8 @@ void server::getHandlers(const NginxConfig &config) {
                 handler_type = HANDLER_ECHO;
               } else if (block_tokens[2] == "StaticHandler") {
                 handler_type = HANDLER_STATIC_FILE;
+              } else if (block_tokens[2] == "ReverseProxyHandler") {
+                handler_type = HANDLER_REVERSE_PROXY;
               } else if (block_tokens[2] == "NotFoundHandler") {
                 handler_type = HANDLER_NOT_FOUND;
               } else {
@@ -63,6 +65,9 @@ void server::create_and_add_handler(HandlerType type,
     break;
   case HANDLER_STATIC_FILE:
     handler = new StaticFileRequestHandler(loc, config);
+    break;
+  case HANDLER_REVERSE_PROXY:
+    handler = new ReverseProxyRequestHandler(loc, config);
     break;
   case HANDLER_NOT_FOUND:
     handler = new NotFoundRequestHandler(loc, config);
