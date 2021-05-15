@@ -38,4 +38,7 @@ server {
   location / NotFoundHandler {
 
   }
+  location /status StatusHandler {
+    
+  }
 }

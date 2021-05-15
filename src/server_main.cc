@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     }
     boost::asio::io_service io_service;
     NginxConfigParser config_parser;
-    NginxConfig config; 
+    NginxConfig config;
     LOG_DEBUG << "Attempting to parse config file";
     bool success = config_parser.Parse(argv[1], &config);
     if (!success) {

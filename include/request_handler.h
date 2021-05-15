@@ -8,17 +8,22 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <map>
+#include <math.h>
 #include <optional>
 #include <set>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "http_client.h"
 #include "logger.h"
+#include "server.h"
 #include "utils.h"
 
 namespace beast = boost::beast;
 namespace http = beast::http;
+
+class server;
 
 /**
  * Abstract base class for request handlers
@@ -113,8 +118,9 @@ public:
   http::response handle_request(const http::request &req) const;
 
 private:
-  std::string replaced_absolute_paths(const std::string &body, const std::string &prefix,
-                              const std::string &separator) const;
+  std::string replaced_absolute_paths(const std::string &body,
+                                      const std::string &prefix,
+                                      const std::string &separator) const;
   std::string parse_host_from_http_url(const std::string &url) const;
   std::string parse_target_from_http_url(const std::string &url) const;
   void prepare_proxied_resp(http::response &resp) const;
@@ -124,6 +130,18 @@ private:
   std::string host;
   std::string port;
   int max_depth;
+};
+/*
+ * handler that displays information on the status of the webserver
+ */
+class StatusRequestHandler : public RequestHandler {
+public:
+  StatusRequestHandler(const std::string &location, const NginxConfig &config);
+  void initStatus(server *parent_server);
+  http::response handle_request(const http::request &req) const;
+
+private:
+  server *parent_server_;
 };
 
 /**

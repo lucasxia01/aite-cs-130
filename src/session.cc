@@ -2,7 +2,7 @@
 
 template <class TSocket>
 session<TSocket>::session(boost::asio::io_service &io_service,
-                          const server *const parent_server)
+                          server *const parent_server)
     : socket_(io_service), parent_server_(parent_server) {}
 template <class TSocket> TSocket &session<TSocket>::socket() { return socket_; }
 
@@ -36,8 +36,7 @@ void session<TSocket>::read_body(size_t content_length) {
                        body_buffer, body_buffer + bytes_transferred));
                    response_ = request_handler_
                                    ? request_handler_->handle_request(request_)
-                                   : show_error_page(
-                                         http::status::bad_request);
+                                   : show_error_page(http::status::bad_request);
                    session::write();
                  } else {
                    LOG_ERROR << socket_.get_endpoint_address()
@@ -75,9 +74,8 @@ void session<TSocket>::handle_read_header(
       LOG_DEBUG << socket_.get_endpoint_address()
                 << ": Bad request header or content length...\n"
                 << "\tContent length: " << content_length;
-      response_ = show_error_page(
-          http::status::bad_request,
-          "Invalid request headers or content length");
+      response_ = show_error_page(http::status::bad_request,
+                                  "Invalid request headers or content length");
       session::write();
     } else if (request_parse_result) {
       LOG_DEBUG << socket_.get_endpoint_address()
@@ -90,9 +88,9 @@ void session<TSocket>::handle_read_header(
         // Bad URI
         LOG_DEBUG << socket_.get_endpoint_address()
                   << ": Bad URI:" << request_.target();
-        response_ = show_error_page(
-            http::status::bad_request,
-            "Error getting handler for uri " + std::string(request_.target()));
+        response_ = show_error_page(http::status::bad_request,
+                                    "Error getting handler for uri " +
+                                        std::string(request_.target()));
         session::write();
         return;
       }
@@ -164,6 +162,8 @@ template <class TSocket> void session<TSocket>::write() {
           delete this;
         }
       });
+  parent_server_->log_request(std::string(request_.target()),
+                              response_.result());
 }
 
 // tcp_socket_wrapper used by server.cc

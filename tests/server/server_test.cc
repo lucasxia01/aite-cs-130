@@ -20,6 +20,7 @@ TEST_F(ServerTest, longestPrefix) {
       new DummyRequestHandler("/echo/echo/echo");
   std::string request_uri = "/echo/echo/echo";
   const RequestHandler *handler = s->get_request_handler(request_uri);
-  const DummyRequestHandler * handle= static_cast<const DummyRequestHandler*>(handler);
+  const DummyRequestHandler *handle =
+      static_cast<const DummyRequestHandler *>(handler);
   EXPECT_EQ(handle->get_location(), "/echo/echo/echo");
 }

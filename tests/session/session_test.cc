@@ -15,38 +15,23 @@ class SessionTest : public testing::Test {
   std::map<std::string, std::string> root_to_base_dir = {
       {"/static", "/usr/src/projects/aite/"}};
 
-  std::unique_ptr<NginxConfig> config = 
-    std::make_unique<NginxConfig>(
-      NginxConfig{{
-        std::make_shared<NginxConfigStatement>(NginxConfigStatement{{"server"},
-          std::make_unique<NginxConfig>(
-            NginxConfig{{
-              std::make_shared<NginxConfigStatement>(
-                NginxConfigStatement{{"port", "80"}, nullptr}
-              ),
-              std::make_shared<NginxConfigStatement>(
-                NginxConfigStatement{{"location", "/echo", "EchoHandler"}, 
-                  std::make_unique<NginxConfig>(
-                      NginxConfig{}
-                  )
-                }
-              ),
-              std::make_shared<NginxConfigStatement>(
-                NginxConfigStatement{{"location", "/static", "StaticHandler"}, 
-                  std::make_unique<NginxConfig>(
-                    NginxConfig{{
-                      std::make_shared<NginxConfigStatement>(
-                        NginxConfigStatement{{"root", "/usr/src/projects/aite/"}, nullptr}
-                      )
-                    }}
-                  )
-                }
-              )
-            }}
-          )
-        })
-      }}
-    );
+  std::unique_ptr<NginxConfig> config = std::make_unique<NginxConfig>(
+      NginxConfig{{std::make_shared<NginxConfigStatement>(NginxConfigStatement{
+          {"server"},
+          std::make_unique<NginxConfig>(NginxConfig{
+              {std::make_shared<NginxConfigStatement>(
+                   NginxConfigStatement{{"port", "80"}, nullptr}),
+               std::make_shared<NginxConfigStatement>(NginxConfigStatement{
+                   {"location", "/echo", "EchoHandler"},
+                   std::make_unique<NginxConfig>(NginxConfig{})}),
+               std::make_shared<NginxConfigStatement>(NginxConfigStatement{
+                   {"location", "/static", "StaticHandler"},
+                   std::make_unique<NginxConfig>(
+                       NginxConfig{{std::make_shared<NginxConfigStatement>(
+                           NginxConfigStatement{
+                               {"root", "/usr/src/projects/aite/"},
+                               nullptr})}})})}})})}});
+
 protected:
   boost::asio::io_service io_service;
   boost::system::error_code error;

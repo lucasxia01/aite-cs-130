@@ -14,8 +14,11 @@
 using namespace boost::asio::ip;
 
 template <class TSocket> class session;
+class RequestHandler;
+class NginxConfig;
 
 class server {
+
 public:
   server(boost::asio::io_service &io_service, const NginxConfig &config);
 
@@ -25,19 +28,29 @@ public:
   void handle_accept(session<tcp_socket_wrapper> *new_session,
                      const boost::system::error_code &error);
 
-    const RequestHandler *get_request_handler(std::string request_uri) const;
-  boost::asio::io_service &io_service_;
-  std::unique_ptr<tcp::acceptor> acceptor_;
+  const RequestHandler *get_request_handler(std::string request_uri) const;
+
+  void log_request(std::string request_uri, http::status status_code);
+
+  const std::vector<std::pair<std::string, http::status>> get_requests();
+
+  const std::map<std::string, std::vector<std::string>> get_prefix_map();
+
+  ~server();
   std::map<const std::string, const RequestHandler *> location_to_handler_;
 
 private:
-  // different request handler types supported
   enum HandlerType {
     HANDLER_ECHO = 0,
     HANDLER_STATIC_FILE = 1,
     HANDLER_NOT_FOUND = 2,
-    HANDLER_REVERSE_PROXY = 3
+    HANDLER_REVERSE_PROXY = 3,
+    HANDLER_STATUS = 4
   };
+  boost::asio::io_service &io_service_;
+  std::unique_ptr<tcp::acceptor> acceptor_;
+  std::vector<std::pair<std::string, http::status>> requests_;
+  std::map<std::string, std::vector<std::string>> handler_to_prefixes_;
   void getHandlers(const NginxConfig &config);
   void create_and_add_handler(HandlerType type, const std::string &location,
                               const NginxConfig &config);

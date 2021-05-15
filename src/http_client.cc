@@ -4,9 +4,9 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-http::response HttpClient::perform_request(
-    const std::string &host, const std::string &port,
-    const http::request &req) {
+http::response HttpClient::perform_request(const std::string &host,
+                                           const std::string &port,
+                                           const http::request &req) {
   // These objects perform our I/O
   boost::asio::io_service ios;
   tcp::resolver resolver(ios);

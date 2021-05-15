@@ -114,23 +114,26 @@ enum HandlerType{
 HANDLER_FOO = 3 //replace '3' with the appropriate number
 };
 ```
-and the following line to `server::create_and_add_handler()`
+and the following lines to `server::create_and_add_handler()`
 ``` cpp
 void server::create_and_add_handler(HandlerType handler, const std::string &location, const NginxConfig &config) {
 ...
   case HANDLER_NOT_FOUND:
     handler = new NotFoundRequestHandler(loc, config);
+    name = "404";
     break;
   //beginning of code addition
   case HANDLER_FOO:
     handler = new FooRequestHandler(loc, config);
+    name = "Foo"
     break;
   }
   //end of code addition
+  handler_to_prefixes_[name].push_back(location);
   location_to_handler_[location] = handler;
 ```
 ### 2. In Request Handler
-Include your declaration of your custom request handler in `include/request_handler.h` and provide its definitions in `src/request_handler.cc`, making sure to at least provide a declaration/definition for the constructor with the specified arguments and a `handle_request` member function i.e.
+Include your declaration of your custom request handler in `include/request_handler.h` and provide its definitions in `src/handlers/${your_handler_name}_handler.cc`, making sure to at least provide a declaration/definition for the constructor with the specified arguments and a `handle_request` member function i.e.
 ```cpp
 //in request_handler.h
 class FooRequestHandler : public RequestHandler {
@@ -140,6 +143,11 @@ public:
     //any other member function/variable declations that you want
 }
 ```
+### 3. In CmakeList
+`add_library(${your_handler_name}_handler_lib src/handlers/${your_handler_name}_handler.cc)`
+add `${your_handler_name}_handler_lib` dependency to `session_lib` and `request_handler_lib_test`
+link any dependencies that `${your_handler_name}_handler_lib` needs
+
 ## Clang-Tidy and Format
 To format code, you can run `make clang-format`.
 You can also run `make clang-tidy` for diagnosing typical programming errors or style issues.

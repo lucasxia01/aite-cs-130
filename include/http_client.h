@@ -11,9 +11,9 @@ using tcp = net::ip::tcp;
 #define request request<http::string_body>
 
 class HttpClient {
- public:
-  http::response perform_request(
-      const std::string& host, const std::string& port,
-      const http::request& req);
+public:
+  http::response perform_request(const std::string &host,
+                                 const std::string &port,
+                                 const http::request &req);
 };
-#endif  // HTTP_CLIENT_H
+#endif // HTTP_CLIENT_H

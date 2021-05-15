@@ -133,3 +133,63 @@ TEST_F(NotFoundRequestHandlerTest, NotFoundResponse) {
   // get response from server through mock socket
   EXPECT_EQ(expected_response, received_response.str());
 }
+
+class StatusRequestHandlerTest : public testing::Test {
+protected:
+  StatusRequestHandler *status_request_handler;
+  boost::asio::io_service io_service;
+  NginxConfig config;
+  server *s;
+
+  void SetUp() override {
+    status_request_handler = new StatusRequestHandler("/status", empty_config);
+    s = new server(io_service, config);
+  }
+  void TearDown() override {
+    delete status_request_handler;
+    delete s;
+    ;
+  }
+};
+
+TEST_F(StatusRequestHandlerTest, StatusResponse) {
+  status_request_handler->initStatus(s);
+  std::string root;
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/status");
+  std::stringstream received_response;
+  received_response << status_request_handler->handle_request(req);
+
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body
+      << "<!DOCTYPE html><html><link rel ='preconnect' "
+         "href='https://fonts.gstatic.com'>"
+         "<link href"
+         "='https://fonts.googleapis.com/css2?family=Handlee&display=swap' "
+         "rel='stylesheet'>"
+         "<style> body{ font-family: 'Handlee', cursive; font-size: 20px; "
+         "display: block } "
+         ".code2{ background-color: green } "
+         ".code4, .code5{ background-color: red } "
+         ".code3{ background-color: cyan } "
+         "td,th{ text-align: center; padding-right: 12px; border: 1px solid "
+         "black } "
+         "table{ border: 1px solid black } "
+         "#handlers-list { display: flex; flex-wrap: wrap } "
+         ".handler{ margin-right:12px } "
+         "</style><head><title>Status Page</title></head><body><h1>Status "
+         "Page</h1>"
+         "<b>Number of Requests Served : </b>0<br><br></body></html>";
+  expected_response_header << "HTTP/1.1 200 OK"
+                           << "\r\n"
+                           << "Content-Type: text/html\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+  // get response from server through mock socket
+  EXPECT_EQ(expected_response, received_response.str());
+}

@@ -148,6 +148,22 @@ else
 fi
 
 #########################################################################################
+# test_status_curl: curl to status 
+#########################################################################################
+echo "--------- STARTING test_status_curl ---------"
+cd test_output
+curl localhost:8080/status -o status_output.txt -s -S
+grep -q "<b>Number of Requests Served : </b>11<br><br>" status_output.txt
+result=$?
+cd ..
+if [ $result -ne 0 ]; then
+    echo "FAILED test_status_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_staus_curl"
+fi
+
+#########################################################################################
 # CLEANUP
 #########################################################################################
 # Killing the process with the stored process ID

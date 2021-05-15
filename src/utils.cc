@@ -52,8 +52,9 @@ int getPortNumber(const NginxConfig &config) {
 
 std::string convertToAbsolutePath(std::string path) {
   // remove any enclosing quotes
-  path = (path[0] == '"' && path[path.length()-1] == '"') ? path.substr(1, path.length() - 2)
-                               : path;
+  path = (path[0] == '"' && path[path.length() - 1] == '"')
+             ? path.substr(1, path.length() - 2)
+             : path;
   boost::filesystem::path full_path = boost::filesystem::system_complete(path);
   path = full_path.string();
   // simplify '.' and '..' directories
@@ -83,8 +84,7 @@ std::string convertToAbsolutePath(std::string path) {
   return path;
 }
 
-http::response show_error_page(http::status status_code,
-                                               std::string message) {
+http::response show_error_page(http::status status_code, std::string message) {
   std::ostringstream ss;
   ss << "<!DOCTYPE html><html>"
      << "<head><title>Error</title></head><body>"

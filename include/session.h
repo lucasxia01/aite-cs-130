@@ -14,11 +14,11 @@
 #include "tcp_socket_wrapper.h"
 
 class server;
+class RequestHandler;
 
 template <class TSocket> class session {
 public:
-  session(boost::asio::io_service &io_service,
-          const server *const parent_server);
+  session(boost::asio::io_service &io_service, server *const parent_server);
 
   // getter for socket_
   TSocket &socket();
@@ -45,7 +45,7 @@ private:
   http::response response_;
 
   const RequestHandler *request_handler_;
-  const server *const parent_server_;
+  server *const parent_server_;
 
   enum { max_length = 1024 };
   char data_[max_length];

@@ -13,6 +13,9 @@ server {
   location /static2 StaticHandler {
     root "/doesnotexist";
   }
+  location /status StatusHandler {
+    
+  }
 
   stupid {
     port  80;
