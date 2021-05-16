@@ -13,8 +13,9 @@ server {
   location /static2 StaticHandler {
     root "/doesnotexist";
   }
+  location / NotFoundHandler{
+  }
   location /status StatusHandler {
-    
   }
 
   stupid {

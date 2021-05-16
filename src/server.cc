@@ -117,11 +117,17 @@ void server::handle_accept(session<tcp_socket_wrapper> *new_session,
   start_accept();
 }
 
-void server::log_request(std::string request_uri, http::status status_code) {
-  requests_.push_back(std::make_pair(request_uri, status_code));
+void server::log_request(std::pair<std::string, http::status> req_resp) {
+  if (requests_.find(req_resp) != requests_.end()) {
+    requests_[req_resp] += 1;
+  } else {
+    requests_[req_resp] = 1;
+  }
+  // requests_.push_back(std::make_pair(request_uri, status_code));
 }
 
-const std::vector<std::pair<std::string, http::status>> server::get_requests() {
+const std::map<std::pair<std::string, http::status>, int>
+server::get_requests() {
   return requests_;
 }
 

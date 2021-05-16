@@ -9,13 +9,15 @@ void StatusRequestHandler::initStatus(server *parent_server) {
 http::response
 StatusRequestHandler::handle_request(const http::request &req) const {
   std::ostringstream ss;
+  std::ostringstream temp;
+  int num_req = 0;
 
   if (parent_server_ == nullptr) {
     LOG_FATAL << "Status Handler was not correctly initialized";
     return show_error_page(http::status::internal_server_error,
                            "Status Handler was not correctly initialized");
   } else {
-    const std::vector<std::pair<std::string, http::status>> requests_ =
+    const std::map<std::pair<std::string, http::status>, int> requests_ =
         parent_server_->get_requests();
     const std::map<std::string, std::vector<std::string>> handler_to_prefixes_ =
         parent_server_->get_prefix_map();
@@ -28,8 +30,9 @@ StatusRequestHandler::handle_request(const http::request &req) const {
           "<style> body{ font-family: 'Handlee', cursive; font-size: 20px; "
           "display: block } "
           ".code2{ background-color: green } "
-          ".code4, .code5{ background-color: red } "
-          ".code3{ background-color: cyan } "
+          ".code4{ background-color: red } "
+          ".code5{ background-color: orange } "
+          ".code3{ background-color: yellow } "
           "td,th{ text-align: center; padding-right: 12px; border: 1px solid "
           "black } "
           "table{ border: 1px solid black } "
@@ -49,23 +52,27 @@ StatusRequestHandler::handle_request(const http::request &req) const {
       }
       ss << "</div>";
     }
-    ss << "<b>Number of Requests Served : </b>" << requests_.size()
-       << "<br><br>";
     // display table of served requests and response codes
     if (requests_.size()) {
-      ss << "<table style = \"width:100%\">"
-            "<tr><th>Requested URL</th><th>Response Status Code</th></tr>"
-            "<tr>";
+      temp << "<table style = \"width:100%\">"
+              "<tr><th>Requested URL</th><th>Response Status "
+              "Code</th><th>Number of Requests</th></tr>";
       for (auto req : requests_) {
-        ss << "<tr><td>" << req.first
-           << "</td>"
-              "<td class="
-           << "code"
-           << (int)((int)req.second / pow(10, (int)log10((int)req.second)))
-           << ">" << (int)req.second << " " << req.second << "</td></tr>";
+        temp << "<tr><td>" << req.first.first
+             << "</td>"
+                "<td class="
+             << "code"
+             << (int)((int)req.first.second /
+                      pow(10, (int)log10((int)req.first.second)))
+             << ">" << (int)req.first.second << " " << req.first.second
+             << "</td>"
+             << "<td>" << req.second << "</td></tr>";
+        num_req += req.second;
       }
-      ss << "</table>";
+      temp << "</table>";
     }
+    ss << "<b>Total Number of Requests Served : </b>" << num_req << "<br><br>";
+    ss << temp.str();
     ss << "</body></html>";
   }
   std::string response_content = ss.str();

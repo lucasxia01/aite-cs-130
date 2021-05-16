@@ -91,7 +91,7 @@ fi
 echo "--------- STARTING test_invalid_path_curl ---------"
 
 curl localhost:8080/invalidpath -o test_output/temp_response.txt -s -S
-cmp -s test_output/temp_response.txt <(echo -n '<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Bad Request Error</h1><p>Description: Error getting handler for uri /invalidpath</p></body></html>')
+cmp -s test_output/temp_response.txt <(echo -n '<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Not Found Error</h1><p>Description: Uri path /invalidpath not found</p></body></html>')
 
 result=$?
 
@@ -153,7 +153,7 @@ fi
 echo "--------- STARTING test_status_curl ---------"
 cd test_output
 curl localhost:8080/status -o status_output.txt -s -S
-grep -q "<b>Number of Requests Served : </b>11<br><br>" status_output.txt
+grep -q "<b>Total Number of Requests Served : </b>11<br><br>" status_output.txt
 result=$?
 cd ..
 if [ $result -ne 0 ]; then

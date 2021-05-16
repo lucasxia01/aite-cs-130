@@ -172,8 +172,9 @@ TEST_F(StatusRequestHandlerTest, StatusResponse) {
          "<style> body{ font-family: 'Handlee', cursive; font-size: 20px; "
          "display: block } "
          ".code2{ background-color: green } "
-         ".code4, .code5{ background-color: red } "
-         ".code3{ background-color: cyan } "
+         ".code4{ background-color: red } "
+         ".code5{ background-color: orange } "
+         ".code3{ background-color: yellow } "
          "td,th{ text-align: center; padding-right: 12px; border: 1px solid "
          "black } "
          "table{ border: 1px solid black } "
@@ -181,7 +182,7 @@ TEST_F(StatusRequestHandlerTest, StatusResponse) {
          ".handler{ margin-right:12px } "
          "</style><head><title>Status Page</title></head><body><h1>Status "
          "Page</h1>"
-         "<b>Number of Requests Served : </b>0<br><br></body></html>";
+         "<b>Total Number of Requests Served : </b>0<br><br></body></html>";
   expected_response_header << "HTTP/1.1 200 OK"
                            << "\r\n"
                            << "Content-Type: text/html\r\n"

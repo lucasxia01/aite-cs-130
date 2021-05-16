@@ -162,8 +162,8 @@ template <class TSocket> void session<TSocket>::write() {
           delete this;
         }
       });
-  parent_server_->log_request(std::string(request_.target()),
-                              response_.result());
+  parent_server_->log_request(
+      std::make_pair(std::string(request_.target()), response_.result()));
 }
 
 // tcp_socket_wrapper used by server.cc

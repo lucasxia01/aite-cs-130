@@ -30,9 +30,9 @@ public:
 
   const RequestHandler *get_request_handler(std::string request_uri) const;
 
-  void log_request(std::string request_uri, http::status status_code);
+  void log_request(std::pair<std::string, http::status>);
 
-  const std::vector<std::pair<std::string, http::status>> get_requests();
+  const std::map<std::pair<std::string, http::status>, int> get_requests();
 
   const std::map<std::string, std::vector<std::string>> get_prefix_map();
 
@@ -49,7 +49,7 @@ private:
   };
   boost::asio::io_service &io_service_;
   std::unique_ptr<tcp::acceptor> acceptor_;
-  std::vector<std::pair<std::string, http::status>> requests_;
+  std::map<std::pair<std::string, http::status>, int> requests_;
   std::map<std::string, std::vector<std::string>> handler_to_prefixes_;
   void getHandlers(const NginxConfig &config);
   void create_and_add_handler(HandlerType type, const std::string &location,
