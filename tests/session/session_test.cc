@@ -12,8 +12,7 @@
 
 class SessionTest : public testing::Test {
   std::set<std::string> echo_roots = {"/echo"};
-  std::map<std::string, std::string> root_to_base_dir = {
-      {"/static", "../../"}};
+  std::map<std::string, std::string> root_to_base_dir = {{"/static", "../../"}};
 
   std::unique_ptr<NginxConfig> config = std::make_unique<NginxConfig>(
       NginxConfig{{std::make_shared<NginxConfigStatement>(NginxConfigStatement{
@@ -28,9 +27,8 @@ class SessionTest : public testing::Test {
                    {"location", "/static", "StaticHandler"},
                    std::make_unique<NginxConfig>(
                        NginxConfig{{std::make_shared<NginxConfigStatement>(
-                           NginxConfigStatement{
-                               {"root", "../.."},
-                               nullptr})}})})}})})}});
+                           NginxConfigStatement{{"root", "../.."},
+                                                nullptr})}})})}})})}});
 
 protected:
   boost::asio::io_service io_service;
