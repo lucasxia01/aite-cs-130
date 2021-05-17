@@ -13,7 +13,7 @@
 class SessionTest : public testing::Test {
   std::set<std::string> echo_roots = {"/echo"};
   std::map<std::string, std::string> root_to_base_dir = {
-      {"/static", "/usr/src/projects/aite/"}};
+      {"/static", "../../"}};
 
   std::unique_ptr<NginxConfig> config = std::make_unique<NginxConfig>(
       NginxConfig{{std::make_shared<NginxConfigStatement>(NginxConfigStatement{
@@ -29,7 +29,7 @@ class SessionTest : public testing::Test {
                    std::make_unique<NginxConfig>(
                        NginxConfig{{std::make_shared<NginxConfigStatement>(
                            NginxConfigStatement{
-                               {"root", "/usr/src/projects/aite/"},
+                               {"root", "../.."},
                                nullptr})}})})}})})}});
 
 protected:
@@ -96,7 +96,7 @@ TEST_F(SessionTest, ReadBody) {
 
 TEST_F(SessionTest, StaticFile) {
   std::string file_content = "test content";
-  const char *path = "/usr/src/projects/aite/tests/static_test_files/file.txt";
+  const char *path = "../static_test_files/file.txt";
   std::ofstream f(path);
   f << file_content;
   f.close();
