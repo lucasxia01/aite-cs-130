@@ -23,17 +23,18 @@ server {
   location /uw ReverseProxyHandler {
     port 80;
     host www.washington.edu;
-    max_depth 10;
   }
   location /nyu ReverseProxyHandler {
     port 80;
     host www.nyu.edu;
-    max_depth 10;
   }
   location /bitly ReverseProxyHandler {
     port 80;
     host bit.ly;
-    max_depth 10;
+  }
+  location /tinyurl ReverseProxyHandler {
+    port 80;
+    host tinyurl.com;
   }
   location / NotFoundHandler {
 

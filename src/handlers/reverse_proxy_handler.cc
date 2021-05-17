@@ -15,15 +15,6 @@ ReverseProxyRequestHandler::ReverseProxyRequestHandler(
               << ", only one port should be listed per location";
   }
   port = port_values[0];
-
-  std::vector<std::string> max_depth_values =
-      configLookup(config, {}, "max_depth");
-  try {
-    max_depth = stoi(max_depth_values[0]);
-  } catch (std::exception &e) {
-    LOG_FATAL << "Invalid max depth value for " << location << ": "
-              << max_depth_values[0];
-  }
 }
 
 http::response
@@ -46,36 +37,9 @@ ReverseProxyRequestHandler::handle_request(const http::request &req) const {
 
   auto location_hdr = resp.find(http::field::location);
   int status_code = resp.result_int();
-  int redirects_taken = 0;
-  while (location_hdr != resp.end() && status_code >= 300 &&
-         status_code < 400 && redirects_taken < max_depth) {
+  if (location_hdr != resp.end() && status_code >= 300 && status_code <= 399) {
     auto redirect = std::string((*location_hdr).value());
-    std::string redirect_host = host + ":" + port;
-    if (redirect.rfind('/', 0) == 0) {
-      // Prepend proxy path to redirect path.
-      proxied_target = location + redirect;
-    } else {
-      // We only support http requests
-      // If we encounter a non-http redirect location, return the 30X
-      // response without processing it
-      if (redirect.substr(0, 7) != "http://") {
-        prepare_proxied_resp(resp);
-        return resp;
-      }
-      redirect_host = parse_host_from_http_url(redirect);
-      proxied_target = parse_target_from_http_url(redirect);
-    }
-
-    LOG_DEBUG << "Redirected to: " << redirect;
-
-    proxied_request.target(proxied_target);
-    proxied_request.set(http::field::host, redirect_host + ":" + port);
-    proxied_request.set(http::field::accept_encoding, "identity");
-
-    resp = http_client_->perform_request(redirect_host, port, proxied_request);
-    location_hdr = resp.find(http::field::location);
-    status_code = resp.result_int();
-    redirects_taken++;
+    resp.set(http::field::location, redirect);
   }
 
   prepare_proxied_resp(resp);

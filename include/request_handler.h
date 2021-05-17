@@ -129,7 +129,6 @@ private:
   const std::string location;
   std::string host;
   std::string port;
-  int max_depth;
 };
 /*
  * handler that displays information on the status of the webserver
