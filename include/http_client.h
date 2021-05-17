@@ -12,8 +12,9 @@ using tcp = net::ip::tcp;
 
 class HttpClient {
 public:
-  http::response perform_request(const std::string &host,
-                                 const std::string &port,
-                                 const http::request &req);
+  HttpClient();
+  virtual http::response perform_request(const std::string &host,
+                                         const std::string &port,
+                                         const http::request &req);
 };
 #endif // HTTP_CLIENT_H

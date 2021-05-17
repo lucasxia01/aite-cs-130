@@ -4,6 +4,8 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
+HttpClient::HttpClient() {}
+
 http::response HttpClient::perform_request(const std::string &host,
                                            const std::string &port,
                                            const http::request &req) {

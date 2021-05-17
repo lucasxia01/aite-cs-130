@@ -32,10 +32,6 @@ server {
     port 80;
     host bit.ly;
   }
-  location /tinyurl ReverseProxyHandler {
-    port 80;
-    host tinyurl.com;
-  }
   location / NotFoundHandler {
 
   }

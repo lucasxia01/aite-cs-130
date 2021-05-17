@@ -1,3 +1,4 @@
+#include "mock_http_client.h"
 #include "request_handler.h"
 #include "gtest/gtest.h"
 #include <optional>
@@ -148,7 +149,6 @@ protected:
   void TearDown() override {
     delete status_request_handler;
     delete s;
-    ;
   }
 };
 
@@ -195,4 +195,102 @@ TEST_F(StatusRequestHandlerTest, StatusResponse) {
       expected_response_header.str() + expected_response_body.str();
   // get response from server through mock socket
   EXPECT_EQ(expected_response, received_response.str());
+}
+
+class ReverseProxyRequestHandlerTest : public testing::Test {
+protected:
+  ReverseProxyRequestHandler *handler;
+  std::unique_ptr<NginxConfig> config = std::make_unique<NginxConfig>(
+      NginxConfig{{std::make_shared<NginxConfigStatement>(
+                       NginxConfigStatement{{"host", "hello.com"}, nullptr}),
+                   std::make_shared<NginxConfigStatement>(
+                       NginxConfigStatement{{"port", "69"}, nullptr})}});
+
+  void SetUp() override {}
+  void TearDown() override { delete handler; }
+};
+
+TEST_F(ReverseProxyRequestHandlerTest, ReverseProxyNormalResponse) {
+  std::unique_ptr<mock_http_client> client =
+      std::make_unique<mock_http_client>();
+  handler =
+      new ReverseProxyRequestHandler("/reverse", *config, std::move(client));
+
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/reverse");
+  std::stringstream received_response_stream;
+  received_response_stream << handler->handle_request(req);
+  auto received_response = received_response_stream.str();
+  std::cout << received_response << std::endl;
+
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body << "SUCCESS";
+  expected_response_header << "HTTP/1.1 200 OK"
+                           << "\r\n"
+                           << "Content-Type: text/html\r\n"
+                           << "Location: trololol.com\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+  EXPECT_EQ(received_response, expected_response);
+}
+
+TEST_F(ReverseProxyRequestHandlerTest, ReverseProxyRedirectAbsoluteResponse) {
+  std::unique_ptr<mock_http_client> client =
+      std::make_unique<mock_http_client>(302);
+  handler =
+      new ReverseProxyRequestHandler("/reverse", *config, std::move(client));
+
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/reverse");
+  std::stringstream received_response_stream;
+  received_response_stream << handler->handle_request(req);
+  auto received_response = received_response_stream.str();
+
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body << "SUCCESS";
+  expected_response_header << "HTTP/1.1 302 Found"
+                           << "\r\n"
+                           << "Content-Type: text/html\r\n"
+                           << "Location: trololol.com\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+  EXPECT_EQ(received_response, expected_response);
+}
+
+TEST_F(ReverseProxyRequestHandlerTest, ReverseProxyRedirectRelativeResponse) {
+  std::unique_ptr<mock_http_client> client =
+      std::make_unique<mock_http_client>(302, "/relative/path");
+  handler =
+      new ReverseProxyRequestHandler("/reverse", *config, std::move(client));
+
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/reverse");
+  std::stringstream received_response_stream;
+  received_response_stream << handler->handle_request(req);
+  auto received_response = received_response_stream.str();
+
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body << "SUCCESS";
+  expected_response_header << "HTTP/1.1 302 Found"
+                           << "\r\n"
+                           << "Content-Type: text/html\r\n"
+                           << "Location: /reverse/relative/path\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+  EXPECT_EQ(received_response, expected_response);
 }

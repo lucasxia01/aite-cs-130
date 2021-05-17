@@ -18,6 +18,15 @@ server {
   location /status StatusHandler {
   }
 
+  location /nyu ReverseProxyHandler {
+    port 80;
+    host www.nyu.edu;
+  }
+  location /bitly ReverseProxyHandler {
+    port 80;
+    host bit.ly;
+  }
+
   stupid {
     port  80;
     server_name foo.com;

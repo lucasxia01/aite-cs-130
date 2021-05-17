@@ -1,4 +1,6 @@
 #include "request_handler.h"
+#include <memory>
+
 ReverseProxyRequestHandler::ReverseProxyRequestHandler(
     const std::string &location, const NginxConfig &config)
     : location(location) {
@@ -15,6 +17,15 @@ ReverseProxyRequestHandler::ReverseProxyRequestHandler(
               << ", only one port should be listed per location";
   }
   port = port_values[0];
+
+  http_client_ = std::make_unique<HttpClient>();
+}
+
+ReverseProxyRequestHandler::ReverseProxyRequestHandler(
+    const std::string &location, const NginxConfig &config,
+    std::unique_ptr<HttpClient> http_client)
+    : ReverseProxyRequestHandler(location, config) {
+  http_client_ = std::move(http_client);
 }
 
 http::response
@@ -27,11 +38,13 @@ ReverseProxyRequestHandler::handle_request(const http::request &req) const {
     // If the remaining path is empty, request the root.
     proxied_target = "/";
   }
+
   proxied_request.target(proxied_target);
   // Change Host header to proxy destination.
   proxied_request.set(http::field::host, host + ":" + port);
   // Only allow plaintext response so we can manipulate the body.
   proxied_request.set(http::field::accept_encoding, "identity");
+
   http::response resp =
       http_client_->perform_request(host, port, proxied_request);
 
@@ -39,9 +52,11 @@ ReverseProxyRequestHandler::handle_request(const http::request &req) const {
   int status_code = resp.result_int();
   if (location_hdr != resp.end() && status_code >= 300 && status_code <= 399) {
     auto redirect = std::string((*location_hdr).value());
+    if (redirect.rfind('/', 0) == 0) {
+      redirect = location + redirect;
+    }
     resp.set(http::field::location, redirect);
   }
-
   prepare_proxied_resp(resp);
   return resp;
 }

@@ -160,7 +160,40 @@ if [ $result -ne 0 ]; then
     echo "FAILED test_status_curl"
     passed_all_tests=false
 else
-    echo "PASSED test_staus_curl"
+    echo "PASSED test_status_curl"
+fi
+
+
+#########################################################################################
+# test_proxy_curl: curl to status 
+#########################################################################################
+echo "--------- STARTING test_proxy_curl ---------"
+cd test_output
+curl -vs localhost:8080/nyu >test_proxy_curl_output.txt 2>&1
+grep -q "</body>" test_proxy_curl_output.txt
+result=$?
+cd ..
+if [ $result -ne 0 ]; then
+    echo "FAILED test_proxy_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_proxy_curl"
+fi
+
+#########################################################################################
+# test_proxy_redirect_curl: curl to status 
+#########################################################################################
+echo "--------- STARTING test_proxy_redirect_curl ---------"
+cd test_output
+curl -vs localhost:8080/bitly >test_proxy_redirect_curl_output.txt 2>&1
+grep -q "Location: https://bitly.com/" test_proxy_redirect_curl_output.txt
+result=$?
+cd ..
+if [ $result -ne 0 ]; then
+    echo "FAILED test_proxy_redirect_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_proxy_redirect_curl"
 fi
 
 #########################################################################################

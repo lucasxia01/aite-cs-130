@@ -109,6 +109,10 @@ class ReverseProxyRequestHandler : public RequestHandler {
 public:
   ReverseProxyRequestHandler(const std::string &location,
                              const NginxConfig &config);
+
+  ReverseProxyRequestHandler(const std::string &location,
+                             const NginxConfig &config,
+                             std::unique_ptr<HttpClient> client);
   /**
    * serves requested static file to client
    *
@@ -125,7 +129,7 @@ private:
   std::string parse_target_from_http_url(const std::string &url) const;
   void prepare_proxied_resp(http::response &resp) const;
 
-  std::shared_ptr<HttpClient> http_client_;
+  std::unique_ptr<HttpClient> http_client_;
   const std::string location;
   std::string host;
   std::string port;
