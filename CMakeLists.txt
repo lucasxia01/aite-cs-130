@@ -73,6 +73,7 @@ target_link_libraries(utils_lib config_parser_lib)
 target_link_libraries(reverse_proxy_handler_lib http_client_lib utils_lib) 
 target_link_libraries(static_file_handler_lib utils_lib) 
 target_link_libraries(status_handler_lib server_lib)
+target_link_libraries(health_handler_lib server_lib)
 
 # Creates executable
 add_executable(server src/server_main.cc)
@@ -108,6 +109,6 @@ gtest_discover_tests(request_handler_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_
 # generate coverage report
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(
-    TARGETS server config_parser_lib server_lib session_lib request_parser_lib utils_lib dummy_handler_lib echo_handler_lib
+    TARGETS server config_parser_lib server_lib session_lib request_parser_lib utils_lib dummy_handler_lib echo_handler_lib not_found_handler_lib reverse_proxy_handler_lib static_file_handler_lib status_handler_lib health_handler_lib
     TESTS config_parser_lib_test request_parser_lib_test server_lib_test utils_lib_test session_lib_test request_handler_lib_test
 )
