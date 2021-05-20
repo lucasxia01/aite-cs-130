@@ -53,13 +53,14 @@ add_library(not_found_handler_lib src/handlers/not_found_handler.cc)
 add_library(reverse_proxy_handler_lib src/handlers/reverse_proxy_handler.cc)
 add_library(static_file_handler_lib src/handlers/static_file_handler.cc)
 add_library(status_handler_lib src/handlers/status_handler.cc)
+add_library(health_handler_lib src/handlers/health_handler.cc)
 add_library(http_client_lib src/http_client.cc)
 
 # Add logger dependencies
 target_link_libraries(config_parser_lib logger_lib)
 
 # add session_lib dependency on request_parser, request, and request_handler libs (indirectly linked with logger)
-target_link_libraries(session_lib request_parser_lib echo_handler_lib not_found_handler_lib reverse_proxy_handler_lib static_file_handler_lib status_handler_lib server_lib)
+target_link_libraries(session_lib request_parser_lib echo_handler_lib not_found_handler_lib reverse_proxy_handler_lib static_file_handler_lib status_handler_lib health_handler_lib server_lib)
 
 target_link_libraries(logger_lib Boost::log_setup Boost::log)
 

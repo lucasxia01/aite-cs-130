@@ -36,7 +36,7 @@ public:
 
   boost::asio::ip::tcp::socket &get_socket() { return socket_; }
 
-  std::string get_endpoint_address() {
+  std::string get_endpoint_address() const {
     return socket_.remote_endpoint().address().to_string();
   }
 

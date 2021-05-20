@@ -102,35 +102,34 @@ public:
 ```
 ## Adding Request Handler(s)
 ### 1. In Server
- To add a Request Handler, navigate to `server.h` and add your handler to the enum HandlerType. In `server::create_and_add_handler()` in `server.cc` add an additional case with the type of your handler. For example if your new handler was specified like this in the config file:
+ To add a Request Handler, navigate to `server.cc` and add your handler to the string array handler_types. In `server::create_and_add_handler()`, add an additional case with the type of your handler. For example if your new handler was specified like this in the config file:
 ```
-location \path foo {
+location \path fooHandler {
 }
 ``` 
-You would add the following line to `server.h`
+You would add the following line to `server.cc`
 ``` cpp
-enum HandlerType{
-...
-HANDLER_FOO = 3 //replace '3' with the appropriate number
+const std::array<std::string, 6> handler_types = { // Remember to increment the size of the array
+    "EchoHandler",
+    "StaticHandler",
+    "ReverseProxyHandler",
+    ...
+    "FooHandler"
 };
 ```
 and the following lines to `server::create_and_add_handler()`
 ``` cpp
-void server::create_and_add_handler(HandlerType handler, const std::string &location, const NginxConfig &config) {
-...
-  case HANDLER_NOT_FOUND:
-    handler = new NotFoundRequestHandler(loc, config);
-    name = "404";
-    break;
-  //beginning of code addition
-  case HANDLER_FOO:
-    handler = new FooRequestHandler(loc, config);
-    name = "Foo"
-    break;
+if (type == "EchoHandler") {
+		handler = new EchoRequestHandler(loc, config);
+	} else if (type == "StaticHandler") {
+		handler = new StaticFileRequestHandler(loc, config);
+	...
+  // beginning of code addition
+	} else if (type == "FooHandler") {
+		handler = new FooHandler(loc, config);
   }
-  //end of code addition
-  handler_to_prefixes_[name].push_back(location);
-  location_to_handler_[location] = handler;
+  // end of code addition
+  ...
 ```
 ### 2. In Request Handler
 Include your declaration of your custom request handler in `include/request_handler.h` and provide its definitions in `src/handlers/${your_handler_name}_handler.cc`, making sure to at least provide a declaration/definition for the constructor with the specified arguments and a `handle_request` member function i.e.

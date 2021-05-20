@@ -147,6 +147,19 @@ private:
   server *parent_server_;
 };
 
+/*
+ * Handler that pings health status
+ */
+class HealthRequestHandler : public RequestHandler {
+public:
+  HealthRequestHandler(const std::string &location, const NginxConfig &config);
+  void initHealth(server *parent_server);
+  http::response handle_request(const http::request &req) const;
+
+private:
+  server *parent_server_;
+};
+
 /**
  * Handler that's soley used for testing purposes
  */

@@ -11,6 +11,14 @@ template <class TSocket> void session<TSocket>::start() {
   session::read_header();
 }
 
+template <class TSocket> void session<TSocket>::log_session_metric() const {
+  LOG_INFO << "[ResponseMetric]"
+           << "[" << socket_.get_endpoint_address() << "]"
+           << "[" << parent_server_->get_handler_type(request_handler_) << "]"
+           << "[" << request_.target() << "]"
+           << "[" << response_.result_int() << "]";
+}
+
 // Read from socket and bind read handler
 template <class TSocket> void session<TSocket>::read_header() {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Reading header";
@@ -138,6 +146,7 @@ void session<TSocket>::handle_read_header(
 
 // Write to socket and bind write handler
 template <class TSocket> void session<TSocket>::write() {
+  log_session_metric();
   std::ostringstream ss;
   ss << response_;
   std::string response_str = ss.str();

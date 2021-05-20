@@ -39,6 +39,8 @@ private:
   void handle_read_header(const boost::system::error_code &error,
                           size_t bytes_transferred);
 
+  void log_session_metric() const;
+
   TSocket socket_;
   request_parser request_parser_;
   http::request request_;

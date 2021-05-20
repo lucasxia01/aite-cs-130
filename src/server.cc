@@ -1,5 +1,9 @@
 #include "server.h"
 
+const std::array<std::string, 6> server::handler_types = {
+    "EchoHandler",     "StaticHandler", "ReverseProxyHandler",
+    "NotFoundHandler", "StatusHandler", "HealthHandler"};
+
 server::server(boost::asio::io_service &io_service, const NginxConfig &config)
     : io_service_(io_service) {
   int port_num = getPortNumber(config);
@@ -34,22 +38,18 @@ void server::getHandlers(const NginxConfig &config) {
               LOG_DEBUG << "location " << block_tokens[1] << ", handler "
                         << block_tokens[2];
               NginxConfig location_config = *(server_statement->child_block_);
-              HandlerType handler_type;
-              if (block_tokens[2] == "EchoHandler") {
-                handler_type = HANDLER_ECHO;
-              } else if (block_tokens[2] == "StaticHandler") {
-                handler_type = HANDLER_STATIC_FILE;
-              } else if (block_tokens[2] == "ReverseProxyHandler") {
-                handler_type = HANDLER_REVERSE_PROXY;
-              } else if (block_tokens[2] == "NotFoundHandler") {
-                handler_type = HANDLER_NOT_FOUND;
-              } else if (block_tokens[2] == "StatusHandler") {
-                handler_type = HANDLER_STATUS;
-              } else {
+              std::string type = block_tokens[2];
+              int i = 0;
+              for (i = 0; i < handler_types.size(); i++) {
+                if (handler_types[i] == type) {
+                  create_and_add_handler(type, block_tokens[1],
+                                         location_config);
+                  break;
+                }
+              }
+              if (i == handler_types.size()) {
                 LOG_ERROR << "Handler " << block_tokens[2] << " does not exist";
               }
-              create_and_add_handler(handler_type, block_tokens[1],
-                                     location_config);
             }
           }
         }
@@ -58,39 +58,50 @@ void server::getHandlers(const NginxConfig &config) {
   }
 }
 
-void server::create_and_add_handler(HandlerType type,
+std::string server::get_handler_type(const RequestHandler *ptr) {
+  if (ptr == nullptr) {
+    return "Bad";
+  }
+  for (const auto &t : type_to_handler_) {
+    for (const auto &p : t.second) {
+      if (p == ptr) {
+        return t.first;
+      }
+    }
+  }
+  return "Unknown";
+}
+
+void server::create_and_add_handler(std::string type,
                                     const std::string &location,
                                     const NginxConfig &config) {
   std::string loc = convertToAbsolutePath(location);
   LOG_DEBUG << "Location is " << loc;
   const RequestHandler *handler;
-  std::string name;
-  switch (type) {
-  case HANDLER_ECHO:
+  if (type == "EchoHandler") {
     handler = new EchoRequestHandler(loc, config);
-    name = "Echo";
-    break;
-  case HANDLER_STATIC_FILE:
+  } else if (type == "StaticHandler") {
     handler = new StaticFileRequestHandler(loc, config);
-    name = "Static";
-    break;
-  case HANDLER_REVERSE_PROXY:
+  } else if (type == "ReverseProxyHandler") {
     handler = new ReverseProxyRequestHandler(loc, config);
-    name = "Reverse Proxy";
-    break;
-  case HANDLER_NOT_FOUND:
+  } else if (type == "NotFoundHandler") {
     handler = new NotFoundRequestHandler(loc, config);
-    name = "404";
-    break;
-  case HANDLER_STATUS:
-    StatusRequestHandler *temp = new StatusRequestHandler(loc, config);
-    temp->initStatus(this);
-    handler = temp;
-    name = "Status";
-    break;
+  } else if (type == "StatusHandler") {
+    StatusRequestHandler *temp_status = new StatusRequestHandler(loc, config);
+    temp_status->initStatus(this);
+    handler = temp_status;
+  } else if (type == "HealthHandler") {
+    HealthRequestHandler *temp_health = new HealthRequestHandler(loc, config);
+    temp_health->initHealth(this);
+    handler = temp_health;
+  } else {
+    LOG_ERROR << "Invalid type passed to create handler";
+    return;
   }
-  handler_to_prefixes_[name].push_back(location);
+
+  handler_to_prefixes_[type].push_back(location);
   location_to_handler_[loc] = handler;
+  type_to_handler_[type].push_back(handler);
 }
 session<tcp_socket_wrapper> *server::start_accept() {
   LOG_DEBUG << "Starting accept";

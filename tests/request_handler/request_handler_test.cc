@@ -1,7 +1,9 @@
-#include "mock_http_client.h"
 #include "request_handler.h"
-#include "gtest/gtest.h"
+
 #include <optional>
+
+#include "mock_http_client.h"
+#include "gtest/gtest.h"
 
 NginxConfigParser config_parser;
 NginxConfig static_config;
@@ -293,4 +295,45 @@ TEST_F(ReverseProxyRequestHandlerTest, ReverseProxyRedirectRelativeResponse) {
   std::string expected_response =
       expected_response_header.str() + expected_response_body.str();
   EXPECT_EQ(received_response, expected_response);
+}
+
+class HealthRequestHandlerTest : public testing::Test {
+protected:
+  HealthRequestHandler *health_request_handler;
+  boost::asio::io_service io_service;
+  NginxConfig config;
+  server *s;
+
+  void SetUp() override {
+    health_request_handler = new HealthRequestHandler("/health", empty_config);
+    s = new server(io_service, config);
+  }
+  void TearDown() override {
+    delete health_request_handler;
+    delete s;
+  }
+};
+
+TEST_F(HealthRequestHandlerTest, HealthResponse) {
+  health_request_handler->initHealth(s);
+  std::string root;
+  http::request req;
+  req.method(http::verb::get);
+  req.target("/health");
+  std::stringstream received_response;
+  received_response << health_request_handler->handle_request(req);
+
+  std::stringstream expected_response_header;
+  std::stringstream expected_response_body;
+  expected_response_body << "OK";
+  expected_response_header << "HTTP/1.1 200 OK"
+                           << "\r\n"
+                           << "Content-Type: text/plain\r\n"
+                           << "Content-Length: "
+                           << expected_response_body.str().length()
+                           << "\r\n\r\n";
+  std::string expected_response =
+      expected_response_header.str() + expected_response_body.str();
+  // get response from server through mock socket
+  EXPECT_EQ(expected_response, received_response.str());
 }

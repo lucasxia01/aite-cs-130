@@ -63,7 +63,7 @@ public:
 
   std::string get_output_buffer() { return fake_output_buffer; }
 
-  std::string get_endpoint_address() { return "1.2.3.4"; }
+  std::string get_endpoint_address() const { return "1.2.3.4"; }
 
 private:
   std::string fake_input_buffer;
