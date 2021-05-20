@@ -17,6 +17,9 @@ server {
   }
   location /status StatusHandler {
   }
+  
+  location /health HealthHandler {
+  }
 
   location /nyu ReverseProxyHandler {
     port 80;

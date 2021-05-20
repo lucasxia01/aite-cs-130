@@ -38,4 +38,8 @@ server {
   location /status StatusHandler {
     
   }
+
+  location /health HealthHandler {
+    
+  }
 }

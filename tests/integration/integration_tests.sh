@@ -148,12 +148,26 @@ else
 fi
 
 #########################################################################################
+# test_default_not_found: Root should default to not found if unspecified
+#########################################################################################
+echo "--------- STARTING test_default_not_found ---------"
+curl localhost:8080/ -o test_output/temp_response.txt -s -S
+cmp -s test_output/temp_response.txt <(echo -n '<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Not Found Error</h1><p>Description: Uri path / not found</p></body></html>')
+result=$?
+if [ $result -ne 0 ]; then
+    echo "FAILED test_default_not_found"
+    passed_all_tests=false
+else
+    echo "PASSED test_default_not_found"
+fi
+
+#########################################################################################
 # test_status_curl: curl to status 
 #########################################################################################
 echo "--------- STARTING test_status_curl ---------"
 cd test_output
 curl localhost:8080/status -o status_output.txt -s -S
-grep -q "<b>Total Number of Requests Served : </b>11<br><br>" status_output.txt
+grep -q "<b>Total Number of Requests Served : </b>" status_output.txt
 result=$?
 cd ..
 if [ $result -ne 0 ]; then
@@ -161,6 +175,22 @@ if [ $result -ne 0 ]; then
     passed_all_tests=false
 else
     echo "PASSED test_status_curl"
+fi
+
+#########################################################################################
+# test_health_curl: curl to status 
+#########################################################################################
+echo "--------- STARTING test_health_curl ---------"
+cd test_output
+curl localhost:8080/health -o health.txt -s -S
+grep -q "OK" health.txt
+result=$?
+cd ..
+if [ $result -ne 0 ]; then
+    echo "FAILED test_health_curl"
+    passed_all_tests=false
+else
+    echo "PASSED test_health_curl"
 fi
 
 
