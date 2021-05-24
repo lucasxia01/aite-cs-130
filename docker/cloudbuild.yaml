@@ -23,7 +23,6 @@ steps:
     '-t', 'gcr.io/$PROJECT_ID/aite:latest',
     '.'
   ]
-  timeout: 1000s
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'build',
@@ -31,5 +30,5 @@ steps:
     '-t', 'gcr.io/$PROJECT_ID/aite:coverage',
     '.'
   ]
-  timeout: 1000s
+timeout: 2000s
 images: ['gcr.io/$PROJECT_ID/aite:base', 'gcr.io/$PROJECT_ID/aite:latest', 'gcr.io/$PROJECT_ID/aite:coverage']

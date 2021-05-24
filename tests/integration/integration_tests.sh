@@ -232,14 +232,14 @@ fi
 echo "--------- STARTING test_multithreading ---------"
 cd test_output
 
-curl -s -S localhost:8080/sleep >/dev/null &
-curl localhost:8080/echo/anypath -o temp_response.txt -s -S
-cmp -s temp_response.txt ../correct_test_valid_echo_curl.txt
+curl localhost:8080/sleep -o sleep_response.txt -s -S &
+curl localhost:8080/echo/anypath -o echo_response.txt -s -S &
+sleep 10
+cmp -s echo_response.txt ../correct_test_valid_echo_curl.txt
 result=$?
-sleep 5
 
 cd ..
-if [ $result -ne 0 ]; then
+if [ $result -ne 0 ] || [ sleep_response.txt -ot echo_response.txt ]; then
     echo "FAILED test_multithreading"
     passed_all_tests=false
 else
