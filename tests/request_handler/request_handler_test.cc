@@ -140,13 +140,12 @@ TEST_F(NotFoundRequestHandlerTest, NotFoundResponse) {
 class StatusRequestHandlerTest : public testing::Test {
 protected:
   StatusRequestHandler *status_request_handler;
-  boost::asio::io_service io_service;
   NginxConfig config;
   server *s;
 
   void SetUp() override {
     status_request_handler = new StatusRequestHandler("/status", empty_config);
-    s = new server(io_service, config);
+    s = new server(5, config);
   }
   void TearDown() override {
     delete status_request_handler;
@@ -300,13 +299,12 @@ TEST_F(ReverseProxyRequestHandlerTest, ReverseProxyRedirectRelativeResponse) {
 class HealthRequestHandlerTest : public testing::Test {
 protected:
   HealthRequestHandler *health_request_handler;
-  boost::asio::io_service io_service;
   NginxConfig config;
   server *s;
 
   void SetUp() override {
     health_request_handler = new HealthRequestHandler("/health", empty_config);
-    s = new server(io_service, config);
+    s = new server(5, config);
   }
   void TearDown() override {
     delete health_request_handler;

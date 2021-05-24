@@ -4,12 +4,11 @@
 #include <boost/bind.hpp>
 
 class ServerTest : public testing::Test {
-  boost::asio::io_service io_service;
   NginxConfig config;
 
 protected:
   server *s;
-  void SetUp() override { s = new server(io_service, config); }
+  void SetUp() override { s = new server(5, config); }
   void TearDown() override { delete s; }
 };
 

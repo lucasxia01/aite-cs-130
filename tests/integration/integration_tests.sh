@@ -3,7 +3,7 @@ echo "####### STARTING INTEGRATION TESTS #######"
 mkdir test_output
 mkdir static_test_output
 # Running the server with a static config file in the background
-../../build/bin/server ../config_parser/basic_config 2>test_output/integration.log &
+../../build/bin/server 5 ../config_parser/basic_config 2>test_output/integration.log &
 # Wait for server start up in the background
 sleep 1
 # Storing the pid so we can kill the process later

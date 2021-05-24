@@ -3,6 +3,7 @@
 
 #include <array>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 #include <map>
 #include <optional>
 #include <string>
@@ -20,13 +21,16 @@ class NginxConfig;
 
 class server {
 public:
-  server(boost::asio::io_service &io_service, const NginxConfig &config);
+  server(int thread_pool_size, const NginxConfig &config);
+  void run();
 
   // starts a session
   session<tcp_socket_wrapper> *start_accept();
   // callback function for start_accept
   void handle_accept(session<tcp_socket_wrapper> *new_session,
                      const boost::system::error_code &error);
+
+  void handle_stop();
 
   const RequestHandler *get_request_handler(std::string request_uri) const;
 
@@ -39,11 +43,15 @@ public:
   ~server();
   std::map<const std::string, const RequestHandler *> location_to_handler_;
   std::string get_handler_type(const RequestHandler *ptr);
+  boost::asio::io_service& get_io_service();
 
 private:
-  static const std::array<std::string, 6> handler_types;
-  boost::asio::io_service &io_service_;
+  boost::asio::io_service io_service_;
   std::unique_ptr<tcp::acceptor> acceptor_;
+  boost::asio::signal_set signals_;
+  int thread_pool_size_;
+
+  static const std::array<std::string, 7> handler_types;
   std::map<std::pair<std::string, http::status>, int> requests_;
   std::map<std::string, std::vector<std::string>> handler_to_prefixes_;
   std::map<std::string, std::vector<const RequestHandler *>> type_to_handler_;

@@ -31,13 +31,12 @@ class SessionTest : public testing::Test {
                                                 nullptr})}})})}})})}});
 
 protected:
-  boost::asio::io_service io_service;
   boost::system::error_code error;
   session<mock_socket> *testSess;
   server *testServer;
   void SetUp(void) {
-    testServer = new server(io_service, *config);
-    testSess = new session<mock_socket>(io_service, testServer);
+    testServer = new server(5, *config);
+    testSess = new session<mock_socket>(testServer->get_io_service(), testServer);
   }
   void TearDown(void) {
     delete testSess;

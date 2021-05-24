@@ -1,11 +1,11 @@
 #include "server.h"
 
-const std::array<std::string, 6> server::handler_types = {
+const std::array<std::string, 7> server::handler_types = {
     "EchoHandler",     "StaticHandler", "ReverseProxyHandler",
-    "NotFoundHandler", "StatusHandler", "HealthHandler"};
+    "NotFoundHandler", "StatusHandler", "HealthHandler", "SleepHandler"};
 
-server::server(boost::asio::io_service &io_service, const NginxConfig &config)
-    : io_service_(io_service) {
+server::server(int thread_pool_size, const NginxConfig &config)
+    : thread_pool_size_(thread_pool_size), signals_(io_service_) {
   int port_num = getPortNumber(config);
   if (port_num == -1) {
     LOG_ERROR << "Failed to parse port number";
@@ -13,11 +13,29 @@ server::server(boost::asio::io_service &io_service, const NginxConfig &config)
   }
   LOG_INFO << "Successfully parsed port number: " << port_num;
 
+  signals_.add(SIGINT);
+  signals_.async_wait(boost::bind(&server::handle_stop, this));
+
   acceptor_ = std::make_unique<tcp::acceptor>(
-      io_service, tcp::endpoint(tcp::v4(), port_num));
+      io_service_, tcp::endpoint(tcp::v4(), port_num));
   getHandlers(config);
   start_accept();
+
   LOG_INFO << "Running server on port number: " << port_num;
+}
+
+void server::run() {
+  // Create a pool of threads to run all of the io_services.
+  std::vector<boost::shared_ptr<boost::thread> > threads;
+  for (std::size_t i = 0; i < thread_pool_size_; ++i) {
+    boost::shared_ptr<boost::thread> thread(new boost::thread(
+          boost::bind(&boost::asio::io_service::run, &io_service_)));
+    threads.push_back(thread);
+  }
+
+  // Wait for all threads in the pool to exit.
+  for (std::size_t i = 0; i < threads.size(); ++i)
+    threads[i]->join();
 }
 
 // parses config for location blocks in the server block
@@ -86,6 +104,8 @@ void server::create_and_add_handler(std::string type,
     handler = new ReverseProxyRequestHandler(loc, config);
   } else if (type == "NotFoundHandler") {
     handler = new NotFoundRequestHandler(loc, config);
+  } else if (type == "SleepHandler") {
+    handler = new SleepHandler();
   } else if (type == "StatusHandler") {
     StatusRequestHandler *temp_status = new StatusRequestHandler(loc, config);
     temp_status->initStatus(this);
@@ -103,6 +123,7 @@ void server::create_and_add_handler(std::string type,
   location_to_handler_[loc] = handler;
   type_to_handler_[type].push_back(handler);
 }
+
 session<tcp_socket_wrapper> *server::start_accept() {
   LOG_DEBUG << "Starting accept";
   session<tcp_socket_wrapper> *new_session =
@@ -170,6 +191,16 @@ server::get_request_handler(std::string request_uri) const {
   }
   return location_to_handler_.at("");
 }
+
+void server::handle_stop() {
+  LOG_INFO << "Server closed";
+  io_service_.stop();
+}
+
+boost::asio::io_service& server::get_io_service() {
+  return io_service_;
+}
+
 server::~server() {
   for (auto &entry : location_to_handler_) {
     delete entry.second;

@@ -161,7 +161,7 @@ private:
 };
 
 /**
- * Handler that's soley used for testing purposes
+ * Handler that's solely used for testing purposes
  */
 class DummyRequestHandler : public RequestHandler {
 public:
@@ -172,6 +172,15 @@ public:
 
 private:
   std::string location;
+};
+
+/**
+ * Handler that's used for testing multithreading
+ */
+class SleepHandler : public RequestHandler {
+public:
+  SleepHandler() {}
+  http::response handle_request(const http::request &req) const;
 };
 
 #endif // REQUEST_HANDLER_H
