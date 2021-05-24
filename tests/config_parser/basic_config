@@ -21,6 +21,9 @@ server {
   location /health HealthHandler {
   }
 
+  location /sleep SleepHandler {
+  }
+
   location /nyu ReverseProxyHandler {
     port 80;
     host www.nyu.edu;

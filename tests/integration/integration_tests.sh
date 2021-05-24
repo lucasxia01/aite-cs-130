@@ -227,6 +227,27 @@ else
 fi
 
 #########################################################################################
+# test_multithreading: sleep request + echo request
+#########################################################################################
+echo "--------- STARTING test_multithreading ---------"
+cd test_output
+
+curl -s -S localhost:8080/sleep >/dev/null &
+curl localhost:8080/echo/anypath -o temp_response.txt -s -S
+cmp -s temp_response.txt ../correct_test_valid_echo_curl.txt
+result=$?
+sleep 5
+
+cd ..
+if [ $result -ne 0 ]; then
+    echo "FAILED test_multithreading"
+    passed_all_tests=false
+else
+    echo "PASSED test_multithreading"
+fi
+
+
+#########################################################################################
 # CLEANUP
 #########################################################################################
 # Killing the process with the stored process ID
