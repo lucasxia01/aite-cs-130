@@ -171,6 +171,8 @@ template <class TSocket> void session<TSocket>::write() {
           delete this;
         }
       });
+
+  boost::lock_guard<boost::mutex> guard(parent_server_->mtx_);
   parent_server_->log_request(
       std::make_pair(std::string(request_.target()), response_.result()));
 }

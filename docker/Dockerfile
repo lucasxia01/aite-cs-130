@@ -28,4 +28,4 @@ FROM ubuntu:latest as deploy
   ENTRYPOINT ["./server"]
 
 # Use CMD to specify arguments to entrypoint (config file)
-  CMD ["5", "server_config"]
+  CMD ["8", "server_config"]
