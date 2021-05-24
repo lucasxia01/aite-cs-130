@@ -8,7 +8,7 @@ WORKDIR /usr/src/projects/aite/build
 
 # Build and test
 RUN cmake ..
-RUN make -j 4
+RUN make -j 2
 RUN ctest --output-on_failure
 
 

@@ -4,7 +4,7 @@ COPY . /usr/src/projects/aite
 WORKDIR /usr/src/projects/aite/build
 
 RUN cmake ..
-RUN make -j 4
+RUN make -j 2
 
 WORKDIR /usr/src/projects/aite/build_coverage
 
