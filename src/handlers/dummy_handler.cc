@@ -1,4 +1,4 @@
-#include "request_handler.h"
+#include "dummy_handler.h"
 
 DummyRequestHandler::DummyRequestHandler(const std::string &location)
     : location(location){};

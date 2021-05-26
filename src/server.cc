@@ -1,4 +1,12 @@
 #include "server.h"
+#include "dummy_handler.h"
+#include "echo_handler.h"
+#include "health_handler.h"
+#include "not_found_handler.h"
+#include "reverse_proxy_handler.h"
+#include "sleep_handler.h"
+#include "static_file_handler.h"
+#include "status_handler.h"
 
 const std::array<std::string, 7> server::handler_types = {
     "EchoHandler",     "StaticHandler", "ReverseProxyHandler",

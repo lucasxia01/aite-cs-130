@@ -1,5 +1,7 @@
-#include "request_handler.h"
+#include "reverse_proxy_handler.h"
+
 #include <memory>
+#include <vector>
 
 ReverseProxyRequestHandler::ReverseProxyRequestHandler(
     const std::string &location, const NginxConfig &config)

@@ -1,4 +1,9 @@
-#include "request_handler.h"
+#include "static_file_handler.h"
+
+#include <boost/filesystem.hpp>
+#include <fstream>
+#include <vector>
+
 StaticFileRequestHandler::StaticFileRequestHandler(const std::string &location,
                                                    const NginxConfig &config)
     : location(location) {

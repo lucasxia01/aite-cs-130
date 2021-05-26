@@ -1,7 +1,10 @@
 #ifndef HTTP_CLIENT_H
 #define HTTP_CLIENT_H
 
-#include <boost/beast.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;

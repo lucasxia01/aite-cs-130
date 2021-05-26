@@ -1,4 +1,5 @@
-#include "request_handler.h"
+#include "health_handler.h"
+
 HealthRequestHandler::HealthRequestHandler(const std::string &location,
                                            const NginxConfig &config)
     : parent_server_(nullptr) {}

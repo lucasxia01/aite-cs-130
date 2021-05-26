@@ -2,7 +2,9 @@
 #define MOCK_HTTP_CLIENT_H
 
 #include "http_client.h"
-#include <boost/beast.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <iostream>
 
 namespace beast = boost::beast;

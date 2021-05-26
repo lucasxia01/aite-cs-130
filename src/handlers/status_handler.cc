@@ -1,4 +1,7 @@
-#include "request_handler.h"
+#include "status_handler.h"
+
+#include <map>
+
 StatusRequestHandler::StatusRequestHandler(const std::string &location,
                                            const NginxConfig &config)
     : parent_server_(nullptr) {}

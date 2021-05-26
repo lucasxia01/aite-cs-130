@@ -1,4 +1,12 @@
 #include "request_handler.h"
+#include "dummy_handler.h"
+#include "echo_handler.h"
+#include "health_handler.h"
+#include "not_found_handler.h"
+#include "reverse_proxy_handler.h"
+#include "sleep_handler.h"
+#include "static_file_handler.h"
+#include "status_handler.h"
 
 #include <optional>
 

@@ -15,6 +15,9 @@
 
 using namespace boost::asio::ip;
 
+namespace beast = boost::beast;
+namespace http = beast::http;
+
 template <class TSocket> class session;
 class RequestHandler;
 class NginxConfig;
