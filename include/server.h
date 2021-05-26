@@ -46,10 +46,10 @@ public:
   ~server();
   std::map<const std::string, const RequestHandler *> location_to_handler_;
   std::string get_handler_type(const RequestHandler *ptr);
-  boost::asio::io_service& get_io_service();
+  boost::asio::io_service &get_io_service();
 
   boost::mutex mtx_;
-  
+
 private:
   std::map<std::pair<std::string, http::status>, int> requests_;
 
@@ -58,7 +58,7 @@ private:
   boost::asio::signal_set signals_;
   int thread_pool_size_;
 
-  static const std::array<std::string, 7> handler_types;
+  static const std::array<std::string, 8> handler_types;
   std::map<std::string, std::vector<std::string>> handler_to_prefixes_;
   std::map<std::string, std::vector<const RequestHandler *>> type_to_handler_;
   void getHandlers(const NginxConfig &config);

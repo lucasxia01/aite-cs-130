@@ -1,8 +1,8 @@
 #ifndef REVERSE_PROXY_HANDLER_H
 #define REVERSE_PROXY_HANDLER_H
 
-#include "request_handler.h"
 #include "http_client.h"
+#include "request_handler.h"
 
 /**
  *  Handler that serves as a proxy between other HTTP resources

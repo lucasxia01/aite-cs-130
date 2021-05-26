@@ -2,15 +2,16 @@
 #include "dummy_handler.h"
 #include "echo_handler.h"
 #include "health_handler.h"
+#include "meme_handler.h"
 #include "not_found_handler.h"
 #include "reverse_proxy_handler.h"
 #include "sleep_handler.h"
 #include "static_file_handler.h"
 #include "status_handler.h"
 
-const std::array<std::string, 7> server::handler_types = {
-    "EchoHandler",     "StaticHandler", "ReverseProxyHandler",
-    "NotFoundHandler", "StatusHandler", "HealthHandler", "SleepHandler"};
+const std::array<std::string, 8> server::handler_types = {
+    "EchoHandler",   "StaticHandler", "ReverseProxyHandler", "NotFoundHandler",
+    "StatusHandler", "HealthHandler", "SleepHandler",        "MemeHandler"};
 
 server::server(int thread_pool_size, const NginxConfig &config)
     : thread_pool_size_(thread_pool_size), signals_(io_service_) {
@@ -34,10 +35,10 @@ server::server(int thread_pool_size, const NginxConfig &config)
 
 void server::run() {
   // Create a pool of threads to run all of the io_services.
-  std::vector<boost::shared_ptr<boost::thread> > threads;
+  std::vector<boost::shared_ptr<boost::thread>> threads;
   for (std::size_t i = 0; i < thread_pool_size_; ++i) {
     boost::shared_ptr<boost::thread> thread(new boost::thread(
-          boost::bind(&boost::asio::io_service::run, &io_service_)));
+        boost::bind(&boost::asio::io_service::run, &io_service_)));
     threads.push_back(thread);
   }
 
@@ -114,6 +115,8 @@ void server::create_and_add_handler(std::string type,
     handler = new NotFoundRequestHandler(loc, config);
   } else if (type == "SleepHandler") {
     handler = new SleepHandler();
+  } else if (type == "MemeHandler") {
+    handler = new MemeGenHandler();
   } else if (type == "StatusHandler") {
     StatusRequestHandler *temp_status = new StatusRequestHandler(loc, config);
     temp_status->initStatus(this);
@@ -205,9 +208,7 @@ void server::handle_stop() {
   io_service_.stop();
 }
 
-boost::asio::io_service& server::get_io_service() {
-  return io_service_;
-}
+boost::asio::io_service &server::get_io_service() { return io_service_; }
 
 server::~server() {
   for (auto &entry : location_to_handler_) {

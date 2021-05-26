@@ -23,12 +23,13 @@ int main(int argc, char *argv[]) {
       LOG_FATAL << "Usage: server <num_threads> <path_to_config_file>";
       return 1;
     }
-    
+
     int num_threads;
     try {
       num_threads = std::stoi(argv[1]);
     } catch (...) {
-      LOG_FATAL << "Usage: server <num_threads> <path_to_config_file>\nInvalid number of threads.";
+      LOG_FATAL << "Usage: server <num_threads> <path_to_config_file>\nInvalid "
+                   "number of threads.";
       return 1;
     }
 

@@ -1,7 +1,6 @@
 #include "sleep_handler.h"
 
-http::response
-SleepHandler::handle_request(const http::request &req) const {
+http::response SleepHandler::handle_request(const http::request &req) const {
   boost::this_thread::sleep_for(boost::chrono::milliseconds(5000));
   http::response resp;
   resp.result(http::status::ok);

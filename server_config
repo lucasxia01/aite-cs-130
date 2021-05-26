@@ -46,4 +46,8 @@ server {
   location /sleep SleepHandler {
     
   }
+
+  location /meme MemeHandler {
+    
+  }
 }

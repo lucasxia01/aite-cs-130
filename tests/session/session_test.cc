@@ -36,7 +36,8 @@ protected:
   server *testServer;
   void SetUp(void) {
     testServer = new server(5, *config);
-    testSess = new session<mock_socket>(testServer->get_io_service(), testServer);
+    testSess =
+        new session<mock_socket>(testServer->get_io_service(), testServer);
   }
   void TearDown(void) {
     delete testSess;
