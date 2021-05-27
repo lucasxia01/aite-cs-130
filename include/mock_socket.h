@@ -7,6 +7,7 @@
 #include <boost/function.hpp>
 #include <cstring>
 #include <string>
+#include <iostream>
 
 /**
  * Mocks out the tcp_socker_wrapper class for unit tests for methods in session
@@ -35,14 +36,15 @@ public:
 
   // copies the first buf.size() bytes of input buffer into buf
   void read(
-      boost::asio::mutable_buffer buf,
+      boost::asio::streambuf &buf,
+      int,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
 
     std::string to_transfer = fake_input_buffer.substr(0, buf.size());
 
     size_t bytes_transferred = to_transfer.length();
-    memcpy(boost::asio::buffer_cast<char *>(buf), to_transfer.c_str(),
-           bytes_transferred);
+    std::ostream os(&buf);
+    os << to_transfer;
 
     fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
     myFunc(make_error_code(boost::system::errc::success), bytes_transferred);

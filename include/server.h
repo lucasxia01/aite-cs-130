@@ -3,6 +3,7 @@
 
 #include <array>
 #include <boost/asio.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <map>
 #include <optional>
@@ -28,9 +29,9 @@ public:
   void run();
 
   // starts a session
-  session<tcp_socket_wrapper> *start_accept();
+  boost::shared_ptr<session<tcp_socket_wrapper>> start_accept();
   // callback function for start_accept
-  void handle_accept(session<tcp_socket_wrapper> *new_session,
+  void handle_accept(boost::shared_ptr<session<tcp_socket_wrapper>> new_session,
                      const boost::system::error_code &error);
 
   void handle_stop();

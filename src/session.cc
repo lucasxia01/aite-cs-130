@@ -23,36 +23,26 @@ template <class TSocket> void session<TSocket>::log_session_metric() const {
 template <class TSocket> void session<TSocket>::read_header() {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Reading header";
   memset(data_, 0, max_length);
-  socket_.read_some(boost::asio::buffer(data_, max_length),
-                    boost::bind(&session::handle_read_header, this,
-                                boost::asio::placeholders::error,
-                                boost::asio::placeholders::bytes_transferred));
+  socket_.read_some(
+      boost::asio::buffer(data_, max_length),
+      boost::bind(
+          &session::handle_read_header,
+          boost::enable_shared_from_this<session<TSocket>>::shared_from_this(),
+          boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
 }
 
 template <class TSocket>
 void session<TSocket>::read_body(size_t content_length) {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Reading body of length "
             << content_length;
-  char *body_buffer = new char[content_length + 1];
-  socket_.read(boost::asio::buffer(body_buffer, content_length),
-               [this, body_buffer](const boost::system::error_code &error,
-                                   size_t bytes_transferred) {
-                 if (!error) {
-                   // Add remainder of body into request object and echo
-                   // response
-                   request_.body().append(std::string(
-                       body_buffer, body_buffer + bytes_transferred));
-                   response_ = request_handler_
-                                   ? request_handler_->handle_request(request_)
-                                   : show_error_page(http::status::bad_request);
-                   session::write();
-                 } else {
-                   LOG_ERROR << socket_.get_endpoint_address()
-                             << ": Error in read body:" << error.message();
-                   delete this;
-                 }
-                 delete[] body_buffer;
-               });
+  socket_.read(
+      body_data, content_length + 1,
+      boost::bind(
+          &session::handle_read_body,
+          boost::enable_shared_from_this<session<TSocket>>::shared_from_this(),
+          boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
 }
 
 // Process data upon socket read
@@ -140,7 +130,41 @@ void session<TSocket>::handle_read_header(
   } else {
     LOG_ERROR << socket_.get_endpoint_address()
               << ": Error in read header: " << error.message();
-    delete this;
+  }
+}
+
+// Process data upon socket read
+template <class TSocket>
+void session<TSocket>::handle_read_body(const boost::system::error_code &error,
+                                        size_t bytes_transferred) {
+  if (!error) {
+    // Add remainder of body into request object and echo
+    // response
+    LOG_DEBUG << "INSIDE HANDLE_READ_BODY";
+    auto d = body_data.data();
+    std::string s(boost::asio::buffers_begin(d),
+                  boost::asio::buffers_begin(d) + body_data.size());
+    request_.body().append(s);
+    response_ = request_handler_ ? request_handler_->handle_request(request_)
+                                 : show_error_page(http::status::bad_request);
+    session::write();
+  } else {
+    LOG_ERROR << socket_.get_endpoint_address()
+              << ": Error in read body:" << error.message();
+  }
+}
+
+template <class TSocket>
+void session<TSocket>::handle_write(const boost::system::error_code &error,
+                                    size_t bytes_transferred) {
+  if (!error) {
+    LOG_DEBUG << socket_.get_endpoint_address()
+              << ": Completed write. Preparing for next request";
+    request_parser_.reset();
+    read_header();
+  } else {
+    LOG_ERROR << socket_.get_endpoint_address()
+              << ": Error writing to socket: " << error.message();
   }
 }
 
@@ -159,18 +183,11 @@ template <class TSocket> void session<TSocket>::write() {
   memcpy(response_buffer, response_str.c_str(), response_str.length());
   socket_.write(
       boost::asio::buffer(response_buffer, response_str.length()),
-      [this](const boost::system::error_code &error, size_t bytes_transferred) {
-        if (!error) {
-          LOG_DEBUG << socket_.get_endpoint_address()
-                    << ": Completed write. Preparing for next request";
-          request_parser_.reset();
-          read_header();
-        } else {
-          LOG_ERROR << socket_.get_endpoint_address()
-                    << ": Error writing to socket: " << error.message();
-          delete this;
-        }
-      });
+      boost::bind(
+          &session::handle_write,
+          boost::enable_shared_from_this<session<TSocket>>::shared_from_this(),
+          boost::asio::placeholders::error,
+          boost::asio::placeholders::bytes_transferred));
 
   boost::lock_guard<boost::mutex> guard(parent_server_->mtx_);
   parent_server_->log_request(

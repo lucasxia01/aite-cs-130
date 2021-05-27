@@ -23,9 +23,10 @@ public:
   }
 
   void read(
-      boost::asio::mutable_buffer buf,
+      boost::asio::streambuf &buf,
+      int to_read,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
-    boost::asio::async_read(socket_, buf, myFunc);
+    boost::asio::async_read(socket_, buf, boost::asio::transfer_exactly(to_read), myFunc);
   }
 
   void write(

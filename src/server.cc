@@ -135,10 +135,10 @@ void server::create_and_add_handler(std::string type,
   type_to_handler_[type].push_back(handler);
 }
 
-session<tcp_socket_wrapper> *server::start_accept() {
+boost::shared_ptr<session<tcp_socket_wrapper>> server::start_accept() {
   LOG_DEBUG << "Starting accept";
-  session<tcp_socket_wrapper> *new_session =
-      new session<tcp_socket_wrapper>(io_service_, this);
+  boost::shared_ptr<session<tcp_socket_wrapper>> new_session(
+      new session<tcp_socket_wrapper>(io_service_, this));
   LOG_DEBUG << "Waiting to accept new connection...";
   acceptor_->async_accept((new_session->socket()).get_socket(),
                           boost::bind(&server::handle_accept, this, new_session,
@@ -146,15 +146,15 @@ session<tcp_socket_wrapper> *server::start_accept() {
   return new_session;
 }
 
-void server::handle_accept(session<tcp_socket_wrapper> *new_session,
-                           const boost::system::error_code &error) {
+void server::handle_accept(
+    boost::shared_ptr<session<tcp_socket_wrapper>> new_session,
+    const boost::system::error_code &error) {
   if (!error) {
     LOG_INFO << "Accepted connection with address: "
              << (new_session->socket()).get_endpoint_address();
     new_session->start();
   } else {
     LOG_ERROR << "Error when accepting socket connection: " << error.message();
-    delete new_session;
   }
 
   start_accept();

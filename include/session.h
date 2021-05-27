@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
 #include <sstream>
 #include <vector>
 
@@ -16,7 +18,7 @@
 class server;
 class RequestHandler;
 
-template <class TSocket> class session {
+template <class TSocket> class session: public boost::enable_shared_from_this<session<TSocket>> {
 public:
   session(boost::asio::io_service &io_service, server *const parent_server);
 
@@ -33,11 +35,15 @@ private:
   void read_body(size_t content_length);
   // Write to socket and bind write handler
   void write();
-  // callback for read_header, parses the request, dispatches the request to the
+  // Callback for read_header, parses the request, dispatches the request to the
   // corresponding handler based on server level mapping of location path to
   // handler
   void handle_read_header(const boost::system::error_code &error,
                           size_t bytes_transferred);
+
+  // Callback for read body, appends what was read into message body into request body, calls request handler, then writes back
+  void handle_read_body(const boost::system::error_code &error, size_t bytes_transferred);
+  void handle_write(const boost::system::error_code &error, size_t bytes_transferred);
 
   void log_session_metric() const;
 
@@ -51,6 +57,7 @@ private:
 
   enum { max_length = 1024 };
   char data_[max_length];
+  boost::asio::streambuf body_data;
 };
 
 #endif // SESSION_H
