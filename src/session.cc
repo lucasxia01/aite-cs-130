@@ -77,7 +77,8 @@ void session<TSocket>::handle_read_header(
       session::write();
     } else if (request_parse_result) {
       LOG_DEBUG << socket_.get_endpoint_address()
-                << ": Successfully read header";
+                << ": Successfully read header with content length "
+                << content_length;
       LOG_DEBUG << socket_.get_endpoint_address()
                 << ": Request URI:" << request_.target();
       request_handler_ =

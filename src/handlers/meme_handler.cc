@@ -6,6 +6,7 @@ http::response MemeGenHandler::handle_request(const http::request &req) const {
       req.find(http::field::content_type) == req.end()) {
     return show_error_page(http::status::bad_request, "Invalid upload request");
   }
+
   std::string content_type = req.at(http::field::content_type).to_string();
 
   std::stringstream ss;
@@ -30,58 +31,73 @@ http::response MemeGenHandler::handle_request(const http::request &req) const {
     return show_error_page(http::status::bad_request, "Invalid multipart form");
   }
 
-  LOG_DEBUG << "PARSED BOUNDARY: " << boundary;
-
   std::stringstream ss_body;
   ss_body << req.body();
   std::string ss_body_s = ss_body.str();
 
   std::string curr_line;
   std::size_t boundary_count = 0;
+  int parse_state = 0;
+  int invalid_parse = false;
 
-  // Validate number of boundaries in the body is 2, since there should only be
-  // one attached file from the form
+  std::stringstream ss_part_header;
+  std::stringstream ss_part_body;
+
+  bool crlf_end = false;
+
+  /*
+  Parse states
+  0: Read in multipart opening boundary
+  1: Read in header
+  2: Read in body
+  3: Read in multipart closing boundary
+
+  If there is anything other than a single part
+  in the body then it is considered invalid
+  */
   while (std::getline(ss_body, curr_line)) {
-    if (curr_line.find(boundary) != std::string::npos) {
-      boundary_count++;
+    if (parse_state == 0) {
+      if (curr_line != "--" + boundary + "\r") {
+        invalid_parse = true;
+        break;
+      } else {
+        parse_state = 1;
+      }
+    } else if (parse_state == 1) {
+      // Reading in header
+      if (curr_line == "--" + boundary + "--\r") {
+        parse_state = 3;
+      } else {
+        if (curr_line == "\r" && crlf_end) {
+          // Two CRLFs transition to body
+          parse_state = 2;
+        } else {
+          ss_part_header << curr_line << "\n";
+        }
+      }
+    } else if (parse_state == 2) {
+      // Reading in body
+      if (curr_line == "--" + boundary + "--\r") {
+        parse_state = 3;
+      } else {
+        ss_part_body << curr_line << "\n";
+      }
+    } else if (parse_state == 3) {
+      invalid_parse = true;
+      break;
     }
-  }
-  if (boundary_count != 2) {
-    return show_error_page(http::status::bad_request, "Too many form parts");
+    crlf_end = (!curr_line.empty() && curr_line.back() == '\r');
   }
 
-  // Parse part inside boundaries
-  std::string body_in_boundaries;
-  std::smatch match_body_in_boundaries;
-  std::string r_temp = "--" + boundary + "([^]*)" + boundary + "--";
-  std::regex r_body_in_boundaries(r_temp);
-
-  if (std::regex_search(ss_body_s, match_body_in_boundaries,
-                        r_body_in_boundaries)) {
-    body_in_boundaries = match_body_in_boundaries[1];
-    boost::trim(body_in_boundaries);
-  } else {
-    return show_error_page(http::status::bad_request, "Invalid multipart part");
+  if (invalid_parse || parse_state != 3) {
+    return show_error_page(http::status::bad_request,
+                           "Invalid multipart request");
   }
 
-  std::string b_header;
-  std::string b_body;
-  std::smatch match_b;
-  std::regex r_b("^([^]*)\r\n\r\n([^]*)$");
-  if (std::regex_search(body_in_boundaries, match_b, r_b) &&
-      match_b.size() == 3) {
-    b_header = match_b[1];
-    b_body = match_b[2];
-    boost::trim(b_header);
-    boost::trim(b_body);
-  } else {
-    return show_error_page(http::status::bad_request, "Invalid part");
-  }
-
+  std::string b_header = ss_part_header.str();
   std::string curr_content_type;
   std::smatch match_curr_content_type;
   std::regex r_content_type("\\b(Content-Type: )(.*)");
-
   if (std::regex_search(b_header, match_curr_content_type, r_content_type)) {
     curr_content_type = match_curr_content_type[0];
     boost::trim(curr_content_type);
@@ -92,13 +108,12 @@ http::response MemeGenHandler::handle_request(const http::request &req) const {
 
   curr_content_type = curr_content_type.substr(
       curr_content_type.find("image/") + 6); // image/jpeg -> jpeg
-
   std::filesystem::path path{"./memes"};
   boost::uuids::uuid u;
   path /= boost::uuids::to_string(u) + "." + curr_content_type;
   std::filesystem::create_directories(path.parent_path());
   std::ofstream ofs(path);
-  ofs << b_body;
+  ofs << ss_part_body.str();
   ofs.close();
 
   http::response resp;
