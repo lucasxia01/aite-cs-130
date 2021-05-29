@@ -37,7 +37,7 @@ void session<TSocket>::read_body(size_t content_length) {
   LOG_DEBUG << socket_.get_endpoint_address() << ": Reading body of length "
             << content_length;
   socket_.read(
-      body_data, content_length + 1,
+      body_data, content_length,
       boost::bind(
           &session::handle_read_body,
           boost::enable_shared_from_this<session<TSocket>>::shared_from_this(),
@@ -105,6 +105,11 @@ void session<TSocket>::handle_read_header(
         // then read content-length - remainder more with asio async_read
         size_t request_header_bytes = header_read_end - data_;
         size_t request_body_bytes = bytes_transferred - request_header_bytes;
+        LOG_DEBUG << socket_.get_endpoint_address()
+                  << ": request_header_bytes: " << request_header_bytes
+                  << ", bytes_transferred: " << bytes_transferred
+                  << ", request_body_bytes: " << request_body_bytes
+                  << ", content_length: " << content_length;
 
         if (request_body_bytes >= content_length) {
           request_.body().append(

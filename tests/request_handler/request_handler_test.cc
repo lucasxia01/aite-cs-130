@@ -9,6 +9,7 @@
 #include "status_handler.h"
 
 #include <optional>
+#include <boost/shared_ptr.hpp>
 
 #include "mock_http_client.h"
 #include "gtest/gtest.h"
@@ -20,12 +21,10 @@ NginxConfig empty_config;
 bool success2 = config_parser.Parse("empty_config", &empty_config);
 class StaticFileRequestHandlerTest : public testing::Test {
 protected:
-  StaticFileRequestHandler *static_file_request_handler;
+  boost::shared_ptr<StaticFileRequestHandler> static_file_request_handler;
   void SetUp() override {
-    static_file_request_handler =
-        new StaticFileRequestHandler("/files", static_config);
+    static_file_request_handler = boost::make_shared<StaticFileRequestHandler>("/files", static_config);
   }
-  void TearDown() override { delete static_file_request_handler; }
 };
 
 TEST_F(StaticFileRequestHandlerTest, StaticFileFound) {

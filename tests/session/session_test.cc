@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
 #include <cstdio>
 #include <fstream>
 #include <sstream>
@@ -32,16 +33,11 @@ class SessionTest : public testing::Test {
 
 protected:
   boost::system::error_code error;
-  session<mock_socket> *testSess;
-  server *testServer;
+  boost::shared_ptr<session<mock_socket>> testSess;
+  boost::shared_ptr<server> testServer;
   void SetUp(void) {
-    testServer = new server(5, *config);
-    testSess =
-        new session<mock_socket>(testServer->get_io_service(), testServer);
-  }
-  void TearDown(void) {
-    delete testSess;
-    delete testServer;
+    testServer = boost::make_shared<server>(5, *config);
+    testSess = boost::make_shared<session<mock_socket>>(testServer->get_io_service(), testServer.get());
   }
 };
 

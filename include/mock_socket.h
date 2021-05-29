@@ -37,10 +37,10 @@ public:
   // copies the first buf.size() bytes of input buffer into buf
   void read(
       boost::asio::streambuf &buf,
-      int,
+      int to_read,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
 
-    std::string to_transfer = fake_input_buffer.substr(0, buf.size());
+    std::string to_transfer = fake_input_buffer.substr(0, to_read);
 
     size_t bytes_transferred = to_transfer.length();
     std::ostream os(&buf);
