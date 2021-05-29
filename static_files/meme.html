@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Meme</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="start" class="pages">
+    <h1>Meme Generator </h1>
+    <button onclick="show_page('instructions')">Start</button>
+  </div>
+  <form id="selections" method="post" enctype="multipart/form-data" action="/echo">
+    <div id="instructions" class="pages">
+      <h1>About Memes</h1>
+      <button type="button" onclick="show_page('select-template')">Next</button>
+    </div>
+    <div id="select-template" class="pages">
+      <h1>Select a template</h1>
+      <div class="flex-container">
+        <div>
+          <button id="temp_1" class=template type="button">Placeholder
+            One</button><br>
+          <input type="radio" name="template_style" value="1">
+        </div>
+        <div>
+          <button id="temp_2" class=template type="button">Placeholder
+            Two</button><br>
+          <input type="radio" name="template_style" value="2">
+        </div>
+        <div>
+          <button id="temp_3" class=template type="button">Placeholder
+            Three</button><br>
+          <input type="radio" name="template_style" value="3">
+        </div>
+      </div>
+      <button type="button" onclick="show_page('upload-image')">Next</button>
+    </div>
+    <div id="upload-image" class="pages">
+      <h1>Upload an image</h1>
+      <input type="file" accept="image/*" name="base_image"><br>
+      <button type="button" onclick="show_page('write-captions')">Next</button>
+    </div>
+    <div id="write-captions" class="pages">
+      <h1>Create Captions</h1>
+      <label for="caption_top">Top Text</label><br>
+      <input type="text" name="captions_top"><br>
+      <label for="caption_bottom">Bottom Text</label><br>
+      <input type="text" name="captions_bottom"><br>
+      <button>submit</button><br>
+    </div>
+  </form>
+</body>
+<script src="script.js">
+</script>
+</html>

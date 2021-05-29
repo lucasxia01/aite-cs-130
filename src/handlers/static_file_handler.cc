@@ -82,6 +82,10 @@ StaticFileRequestHandler::parse_content_type_from_uri(std::string uri) const {
     return "image/png";
   else if (file_extension == ".zip")
     return "application/zip";
+  else if (file_extension == ".css")
+    return "text/css";
+  else if (file_extension == ".js")
+    return "text/javascript";
   else
     return "text/plain";
 }

@@ -1,0 +1,10 @@
+.flex-container{
+  display:flex;
+}
+.template{
+  width: 200px;
+  height: 200px;
+  margin:1vw;
+  font-family: 'Barlow', sans-serif;
+  text-transform: uppercase;
+}

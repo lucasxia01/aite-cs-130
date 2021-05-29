@@ -33,14 +33,13 @@ public:
     fake_input_buffer = fake_input_buffer.substr(bytes_transferred);
     myFunc(make_error_code(boost::system::errc::success), bytes_transferred);
   }
-
   // copies the first buf.size() bytes of input buffer into buf
   void read(
       boost::asio::streambuf &buf,
-      int to_read,
+      int bytes_to_read,
       boost::function<void(const boost::system::error_code &, size_t)> myFunc) {
 
-    std::string to_transfer = fake_input_buffer.substr(0, to_read);
+    std::string to_transfer = fake_input_buffer.substr(0, bytes_to_read);
 
     size_t bytes_transferred = to_transfer.length();
     std::ostream os(&buf);
