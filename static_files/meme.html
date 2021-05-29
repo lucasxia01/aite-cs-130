@@ -9,51 +9,83 @@
 </head>
 
 <body>
+
   <div id="start" class="pages">
-    <h1>Meme Generator </h1>
-    <button onclick="show_page('instructions')">Start</button>
-  </div>
-  <form id="selections" method="post" enctype="multipart/form-data" action="/meme">
-    <div id="instructions" class="pages">
-      <h1>About Memes</h1>
-      <button type="button" onclick="show_page('select-template')">Next</button>
+    <div class="page-layout">
+      <div class="column"></div>
+      <div class="column" style="font-size:10vw"><b>Meme Generator</b></div>
+      <div class="column next" onclick="show_page('instructions')">>></div>
     </div>
+  </div>
+
+  <div id="instructions" class="pages">
+    <div class="page-layout">
+      <div class="column back" onclick="show_page('start')"> &lt&lt </div>
+      <div class="column">
+        <h1>About Memes</h1>
+      </div>
+      <div class="column next" onclick="show_page('select-template')">>></div>
+    </div>
+
+  </div>
+
+  <form id="selections" method="post" enctype="multipart/form-data" action="/echo">
+
     <div id="select-template" class="pages">
-      <h1>Select a template</h1>
-      <div class="flex-container">
-        <div>
-          <button id="temp_1" class=template type="button">Placeholder
-            One</button><br>
-          <input type="radio" name="template_style" value="1">
+      <div class="page-layout">
+        <div class="column back" onclick="show_page('instructions')"> &lt&lt </div>
+        <div class="page-content column">
+          <h1>Select a template</h1>
+          <div class="flex-container">
+            <div class="flex-item">
+              <button id="temp_1" class=template type="button">Placeholder
+                One</button><br>
+              <input type="radio" name="template_style" value="1">
+            </div>
+            <div class="flex-item">
+              <button id="temp_2" class=template type="button">Placeholder
+                Two</button><br>
+              <input type="radio" name="template_style" value="2">
+            </div>
+            <div class="flex-item">
+              <button id="temp_3" class=template type="button">Placeholder
+                Three</button><br>
+              <input type="radio" name="template_style" value="3">
+            </div>
+          </div>
         </div>
-        <div>
-          <button id="temp_2" class=template type="button">Placeholder
-            Two</button><br>
-          <input type="radio" name="template_style" value="2">
+        <div class="column next" onclick="show_page('upload-image')">>></div>
+      </div>
+    </div>
+
+    <div id="upload-image" class="pages">
+      <div class="page-layout">
+        <div class="column back" onclick="show_page('select-template')"> &lt&lt </div>
+        <div class="page-content column">
+          <h1>Upload an image</h1>
+          <input type="file" accept="image/*" name="base_image"><br>
         </div>
-        <div>
-          <button id="temp_3" class=template type="button">Placeholder
-            Three</button><br>
-          <input type="radio" name="template_style" value="3">
+        <div class="column next" onclick="show_page('write-captions')">>></div>
+      </div>
+    </div>
+
+    <div id="write-captions" class="pages">
+      <div class="page-layout">
+        <div class="column back" onclick="show_page('upload-image')"> &lt&lt </div>
+        <div class="page-content column">
+          <h1>Create Captions</h1>
+          <label for="caption_top">Top Text</label>
+          <input type="text" name="captions_top"><br>
+          <label for="caption_bottom">Bottom Text</label>
+          <input type="text" name="captions_bottom"><br>
+          <button>submit</button><br>
         </div>
       </div>
-      <button type="button" onclick="show_page('upload-image')">Next</button>
     </div>
-    <div id="upload-image" class="pages">
-      <h1>Upload an image</h1>
-      <input type="file" accept="image/*" name="base_image"><br>
-      <button type="button" onclick="show_page('write-captions')">Next</button>
-    </div>
-    <div id="write-captions" class="pages">
-      <h1>Create Captions</h1>
-      <label for="caption_top">Top Text</label><br>
-      <input type="text" name="captions_top"><br>
-      <label for="caption_bottom">Bottom Text</label><br>
-      <input type="text" name="captions_bottom"><br>
-      <button>submit</button><br>
-    </div>
+
   </form>
 </body>
 <script src="script.js">
 </script>
+
 </html>
