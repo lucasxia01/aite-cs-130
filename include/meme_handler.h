@@ -12,8 +12,13 @@
  */
 class MemeGenHandler : public RequestHandler {
 public:
-	MemeGenHandler() {}
-	http::response handle_request(const http::request &req) const;
+  MemeGenHandler() {}
+  http::response handle_request(const http::request &req) const;
+
+private:
+  bool parse(std::stringstream &, std::stringstream &, std::stringstream &,
+             std::string boundary) const;
+  bool is_boundary(std::string boundary, std::string line) const;
 };
 
 #endif // NEME_HANDLER_H

@@ -8,8 +8,8 @@
 #include "static_file_handler.h"
 #include "status_handler.h"
 
-#include <optional>
 #include <boost/shared_ptr.hpp>
+#include <optional>
 
 #include "mock_http_client.h"
 #include "gtest/gtest.h"
@@ -23,7 +23,8 @@ class StaticFileRequestHandlerTest : public testing::Test {
 protected:
   boost::shared_ptr<StaticFileRequestHandler> static_file_request_handler;
   void SetUp() override {
-    static_file_request_handler = boost::make_shared<StaticFileRequestHandler>("/files", static_config);
+    static_file_request_handler =
+        boost::make_shared<StaticFileRequestHandler>("/files", static_config);
   }
 };
 

@@ -28,11 +28,8 @@ function show_page(new_page) {
     let divs = document.getElementsByClassName("pages");
     for(let div of divs)
     {
-        // div.style.visibility = "hidden";
-        // div.style.zindex = -1;
         div.style.display = "none"
     }
-    // show.style.visibility = "visible";
     show.style.display = "block"
 
 };

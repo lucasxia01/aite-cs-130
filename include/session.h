@@ -18,7 +18,8 @@
 class server;
 class RequestHandler;
 
-template <class TSocket> class session: public boost::enable_shared_from_this<session<TSocket>> {
+template <class TSocket>
+class session : public boost::enable_shared_from_this<session<TSocket>> {
 public:
   session(boost::asio::io_service &io_service, server *const parent_server);
 
@@ -41,9 +42,12 @@ private:
   void handle_read_header(const boost::system::error_code &error,
                           size_t bytes_transferred);
 
-  // Callback for read body, appends what was read into message body into request body, calls request handler, then writes back
-  void handle_read_body(const boost::system::error_code &error, size_t bytes_transferred);
-  void handle_write(const boost::system::error_code &error, size_t bytes_transferred);
+  // Callback for read body, appends what was read into message body into
+  // request body, calls request handler, then writes back
+  void handle_read_body(const boost::system::error_code &error,
+                        size_t bytes_transferred);
+  void handle_write(const boost::system::error_code &error,
+                    size_t bytes_transferred);
 
   void log_session_metric() const;
 

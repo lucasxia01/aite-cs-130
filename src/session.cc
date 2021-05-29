@@ -146,11 +146,9 @@ void session<TSocket>::handle_read_body(const boost::system::error_code &error,
   if (!error) {
     // Add remainder of body into request object and echo
     // response
-    LOG_DEBUG << "INSIDE HANDLE_READ_BODY";
     auto d = body_data.data();
     std::string s(boost::asio::buffers_begin(d),
                   boost::asio::buffers_begin(d) + body_data.size());
-    LOG_DEBUG << "parsed body in handle read body: " << s;
     request_.body().append(s);
     response_ = request_handler_ ? request_handler_->handle_request(request_)
                                  : show_error_page(http::status::bad_request);

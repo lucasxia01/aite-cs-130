@@ -37,7 +37,8 @@ protected:
   boost::shared_ptr<server> testServer;
   void SetUp(void) {
     testServer = boost::make_shared<server>(5, *config);
-    testSess = boost::make_shared<session<mock_socket>>(testServer->get_io_service(), testServer.get());
+    testSess = boost::make_shared<session<mock_socket>>(
+        testServer->get_io_service(), testServer.get());
   }
 };
 
