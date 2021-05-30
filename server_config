@@ -14,6 +14,9 @@ server {
   location /static StaticHandler {
     root "./static_files/";
   }
+  location /memes StaticHandler {
+    root "./memes/";
+  }
   location /static_root_dir StaticHandler {
     root "/"; # root of directory
   }

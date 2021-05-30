@@ -5,7 +5,9 @@
   <title>Meme</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Odibee+Sans&family=Oswald:wght@700&family=Sigmar+One&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
@@ -13,7 +15,7 @@
   <div id="start" class="pages">
     <div class="page-layout">
       <div class="column"></div>
-      <div class="column" style="font-size:10vw"><b>Meme Generator</b></div>
+      <div id="start-content" class="column"><b>Meme Generator</b></div>
       <div class="column next" onclick="show_page('instructions')">>></div>
     </div>
   </div>
@@ -38,18 +40,24 @@
           <h1>Select a template</h1>
           <div class="flex-container">
             <div class="flex-item">
-              <button id="temp_1" class=template type="button">Placeholder
-                One</button><br>
+              <div class=template>
+                <div class=top-text>Meme top text</div>
+                <div class=bottom-text>Meme bottom text</div>
+              </div><br>
               <input type="radio" name="template_style" value="1">
             </div>
             <div class="flex-item">
-              <button id="temp_2" class=template type="button">Placeholder
-                Two</button><br>
+              <div class=template>
+                <div class=top-text style="background-color:black">Meme top text</div>
+                <div class=bottom-text style="background-color:black">Meme bottom text</div>
+              </div><br>
               <input type="radio" name="template_style" value="2">
             </div>
             <div class="flex-item">
-              <button id="temp_3" class=template type="button">Placeholder
-                Three</button><br>
+              <div class=template style="color:black">
+                <div class=top-text>Meme top text</div>
+                <div class=bottom-text>Meme bottom text</div>
+              </div><br>
               <input type="radio" name="template_style" value="3">
             </div>
           </div>
@@ -63,7 +71,9 @@
         <div class="column back" onclick="show_page('select-template')"> &lt&lt </div>
         <div class="page-content column">
           <h1>Upload an image</h1>
-          <input type="file" accept="image/*" name="base_image"><br>
+          <label id="upload-label" for="upload" style="margin: auto">Choose an image</label>
+          <input id="upload" type="file" accept="image/*" name="base_image" hidden><br>
+          <div id="file-display" style="font-family: Verdana, sans-serif;"></div>
         </div>
         <div class="column next" onclick="show_page('write-captions')">>></div>
       </div>
@@ -74,15 +84,17 @@
         <div class="column back" onclick="show_page('upload-image')"> &lt&lt </div>
         <div class="page-content column">
           <h1>Create Captions</h1>
-          <label for="caption_top">Top Text</label>
-          <input type="text" name="captions_top"><br>
-          <label for="caption_bottom">Bottom Text</label>
-          <input type="text" name="captions_bottom"><br>
-          <button>submit</button><br>
+          <div style="text-align: left; position: relative">
+            <label for="caption_top">Top Text</label><br>
+            <input id="top" type="text" name="captions_top" maxlength=30><br><br>
+            <label for="caption_bottom">Bottom Text</label><br>
+            <input id="bottom" type="text" name="captions_bottom" maxlength=30><br><br>
+            <button style="position: absolute; right: 0">Create Meme</button><br>
+          </div>
         </div>
       </div>
     </div>
-    
+
   </form>
 </body>
 <script src="script.js">

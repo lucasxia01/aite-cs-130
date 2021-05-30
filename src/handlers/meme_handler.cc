@@ -2,6 +2,7 @@
 
 #include <boost/uuid/uuid.hpp>            // uuid class
 #include <boost/uuid/uuid_generators.hpp> // generators
+#include <cctype>
 
 http::response MemeGenHandler::handle_request(const http::request &req) const {
   std::string body = req.body();
@@ -102,11 +103,58 @@ http::response MemeGenHandler::handle_request(const http::request &req) const {
   ofs << ss_base_image_body.str();
   ofs.close();
 
+  std::string style = ss_template_style_body.str();
+  std::ostringstream ss_resp;
+  ss_resp << "<!DOCTYPE html><html><head><link rel='preconnect' "
+             "href='https://fonts.gstatic.com'>"
+             "<link href"
+             "='https://fonts.googleapis.com/"
+             "css2?family=Odibee+Sans&family=Oswald:wght@700&family=Sigmar+One&"
+             "display=swap'</head>"
+             "<body><div class=template><div class='top-text captions'>"
+          << ss_captions_top_body.str()
+          << "</div>"
+             "<div class='bottom-text captions'>"
+          << ss_captions_bottom_body.str()
+          << "</div></div><br></body>"
+             "<style>"
+             ".template{width: 20vw;height: 20vw;margin:1vw;font-family: "
+             "'Oswald', sans-serif;text-transform: "
+             "uppercase;background-image:url("
+          << path.string()
+          << ");background-position: center; background-size:cover; color: "
+             "white;font-size: "
+             "2vw;-webkit-text-stroke: 1px black;position: "
+             "relative;align-content: center;}"
+             ".top-text{height: 20%;width: 100%;position: "
+             "absolute;top:0;text-align: center;}"
+             ".bottom-text{height: 20%;width:100%;position: absolute;bottom: "
+             "0;text-align: center;}";
+  enum template_style { white_font = 1, black_background = 2, black_font = 3 };
+  style.erase(std::remove_if(style.begin(), style.end(), ::isspace),
+              style.end());
+  int chosen_style = stoi(style);
+  switch (chosen_style) {
+  case white_font:
+    break;
+  case black_background:
+    ss_resp << ".captions{background-color:black}";
+    break;
+  case black_font:
+    ss_resp << ".captions{color:black}";
+    break;
+  default:
+    LOG_DEBUG << "style[0] was: " << style[0];
+    return show_error_page(http::status::bad_request, "Invalid meme request");
+  }
+  ss_resp << "</style></body></html>";
+  std::string response_content = ss_resp.str();
+
   http::response resp;
   resp.result(http::status::ok);
-  resp.set(http::field::content_type, "text/plain");
-  resp.body() = "pls make some memes\n";
-  resp.prepare_payload();
+  resp.set(http::field::content_type, "text/html");
+  resp.content_length(response_content.length());
+  resp.body() = response_content;
   return resp;
 }
 

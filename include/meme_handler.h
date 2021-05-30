@@ -1,5 +1,5 @@
-#ifndef NEME_HANDLER_H
-#define NEME_HANDLER_H
+#ifndef MEME_HANDLER_H
+#define MEME_HANDLER_H
 
 #include "request_handler.h"
 #include <boost/algorithm/string.hpp>
@@ -21,4 +21,4 @@ private:
   bool is_boundary(std::string boundary, std::string line) const;
 };
 
-#endif // NEME_HANDLER_H
+#endif // MEME_HANDLER_H
