@@ -39,7 +39,7 @@ http::response MemeGenHandler::handle_request(const http::request &req) const {
 
   // Start parsing the multipart form
 
-  // If the body doesn't consist of exaclty four parts sectioned off by the
+  // If the body doesn't consist of exactly four parts sectioned off by the
   // boundaries (and no content outside of the boundaries), then it is
   // considered invalid
 
