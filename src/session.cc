@@ -167,6 +167,8 @@ void session<TSocket>::handle_write(const boost::system::error_code &error,
               << ": Completed write. Preparing for next request";
     request_parser_.reset();
     request_.clear();
+    request_.body() = "";
+    body_data.consume(body_data.size());
     read_header();
   } else {
     LOG_ERROR << socket_.get_endpoint_address()

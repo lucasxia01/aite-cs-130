@@ -10,15 +10,17 @@
 /**
  * Handler that's used for testing multithreading
  */
-class MemeGenHandler : public RequestHandler {
+class MemeHandler : public RequestHandler {
 public:
-  MemeGenHandler() {}
+  MemeHandler() {}
   http::response handle_request(const http::request &req) const;
 
 private:
   bool parse(std::stringstream &, std::stringstream &, std::stringstream &,
              std::string boundary) const;
   bool is_boundary(std::string boundary, std::string line) const;
+  http::response generate_meme(const http::request &req) const;
+  http::response create_meme(const http::request &req) const;
 };
 
 #endif // MEME_HANDLER_H

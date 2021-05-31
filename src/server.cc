@@ -116,7 +116,7 @@ void server::create_and_add_handler(std::string type,
   } else if (type == "SleepHandler") {
     handler = new SleepHandler();
   } else if (type == "MemeHandler") {
-    handler = new MemeGenHandler();
+    handler = new MemeHandler();
   } else if (type == "StatusHandler") {
     StatusRequestHandler *temp_status = new StatusRequestHandler(loc, config);
     temp_status->initStatus(this);
