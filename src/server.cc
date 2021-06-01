@@ -16,6 +16,13 @@ const std::array<std::string, 8> server::handler_types = {
 
 server::server(int thread_pool_size, const NginxConfig &config)
     : thread_pool_size_(thread_pool_size), signals_(io_service_) {
+  std::filesystem::create_directory("./memes/");
+  std::error_code ec;
+  bool directory = std::filesystem::create_directory("./memes/imgs", ec);
+  if(ec){
+    LOG_ERROR << "Failed to create meme directory";
+    return;
+  }
   int port_num = getPortNumber(config);
   if (port_num == -1) {
     LOG_ERROR << "Failed to parse port number";

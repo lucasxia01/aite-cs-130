@@ -10,11 +10,9 @@
 #include <cstdio>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 
 class SessionTest : public testing::Test {
-  std::set<std::string> echo_roots = {"/echo"};
-  std::map<std::string, std::string> root_to_base_dir = {{"/static", "../../"}};
-
   std::unique_ptr<NginxConfig> config = std::make_unique<NginxConfig>(
       NginxConfig{{std::make_shared<NginxConfigStatement>(NginxConfigStatement{
           {"server"},
@@ -28,7 +26,7 @@ class SessionTest : public testing::Test {
                    {"location", "/static", "StaticHandler"},
                    std::make_unique<NginxConfig>(
                        NginxConfig{{std::make_shared<NginxConfigStatement>(
-                           NginxConfigStatement{{"root", "../.."},
+                           NginxConfigStatement{{"root", "/"},
                                                 nullptr})}})})}})})}});
 
 protected:
@@ -36,9 +34,12 @@ protected:
   boost::shared_ptr<session<mock_socket>> testSess;
   boost::shared_ptr<server> testServer;
   void SetUp(void) {
+    chdir("../../");
+
     testServer = boost::make_shared<server>(5, *config);
     testSess = boost::make_shared<session<mock_socket>>(
         testServer->get_io_service(), testServer.get());
+
   }
 };
 
@@ -91,7 +92,7 @@ TEST_F(SessionTest, ReadBody) {
 
 TEST_F(SessionTest, StaticFile) {
   std::string file_content = "test content";
-  const char *path = "../static_test_files/file.txt";
+  const char *path = "tests/static_test_files/file.txt";
   std::ofstream f(path);
   f << file_content;
   f.close();

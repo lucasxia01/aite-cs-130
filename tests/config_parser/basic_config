@@ -13,6 +13,9 @@ server {
   location /static2 StaticHandler {
     root "/doesnotexist";
   }
+  location /memes/imgs StaticHandler{
+    root ../../../memes/imgs;
+  }
   location / NotFoundHandler{
   }
   location /status StatusHandler {

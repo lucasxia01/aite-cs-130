@@ -26,7 +26,7 @@ http::response MemeHandler::handle_request(const http::request &req) const {
       return browse_memes(req);
     } else {
       return show_error_page(http::status::not_found,
-                             req.target().to_string() + "page not found");
+                             req.target().to_string() + " page not found");
     }
   }
 }
