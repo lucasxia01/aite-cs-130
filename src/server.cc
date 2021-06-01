@@ -8,6 +8,7 @@
 #include "sleep_handler.h"
 #include "static_file_handler.h"
 #include "status_handler.h"
+#include <filesystem>
 
 const std::array<std::string, 8> server::handler_types = {
     "EchoHandler",   "StaticHandler", "ReverseProxyHandler", "NotFoundHandler",
@@ -116,7 +117,9 @@ void server::create_and_add_handler(std::string type,
   } else if (type == "SleepHandler") {
     handler = new SleepHandler();
   } else if (type == "MemeHandler") {
-    handler = new MemeHandler();
+    MemeHandler *temp_meme = new MemeHandler(loc, config);
+    temp_meme->initMeme(this);
+    handler = temp_meme;
   } else if (type == "StatusHandler") {
     StatusRequestHandler *temp_status = new StatusRequestHandler(loc, config);
     temp_status->initStatus(this);
@@ -160,18 +163,29 @@ void server::handle_accept(
   start_accept();
 }
 
+void server::log_meme(std::string img_url,
+                      std::vector<std::string> selections) {
+  if (memes_.find(img_url) != memes_.end()) {
+    LOG_ERROR << "Meme already logged before";
+  } else {
+    memes_[img_url] = selections;
+  }
+}
 void server::log_request(std::pair<std::string, http::status> req_resp) {
   if (requests_.find(req_resp) != requests_.end()) {
     requests_[req_resp] += 1;
   } else {
     requests_[req_resp] = 1;
   }
-  // requests_.push_back(std::make_pair(request_uri, status_code));
 }
 
 const std::map<std::pair<std::string, http::status>, int>
 server::get_requests() {
   return requests_;
+}
+
+const std::map<std::string, std::vector<std::string>> server::get_memes() {
+  return memes_;
 }
 
 const std::map<std::string, std::vector<std::string>> server::get_prefix_map() {
@@ -213,5 +227,10 @@ boost::asio::io_service &server::get_io_service() { return io_service_; }
 server::~server() {
   for (auto &entry : location_to_handler_) {
     delete entry.second;
+  }
+  std::string path = convertToAbsolutePath("./memes/imgs");
+  std::filesystem::path dir_path(path);
+  for (auto &path : std::filesystem::directory_iterator(dir_path)) {
+    std::filesystem::remove_all(path);
   }
 }

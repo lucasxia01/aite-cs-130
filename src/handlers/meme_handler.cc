@@ -6,14 +6,28 @@
 #include <cctype>
 #include <fstream>
 
+MemeHandler::MemeHandler(const std::string &location, const NginxConfig &config)
+    : parent_server_(nullptr) {}
+void MemeHandler::initMeme(server *parent_server) {
+  parent_server_ = parent_server;
+}
+
 http::response MemeHandler::handle_request(const http::request &req) const {
-  if (req.target().to_string() == "/meme/generate") {
-    return generate_meme(req);
-  } else if (req.target().to_string() == "/meme/create") {
-    return create_meme(req);
+  if (parent_server_ == nullptr) {
+    LOG_FATAL << "Meme Handler was not correctly initialized";
+    return show_error_page(http::status::internal_server_error,
+                           "Status Handler was not correctly initialized");
   } else {
-    return show_error_page(http::status::not_found,
-                           req.target().to_string() + "page not found");
+    if (req.target().to_string() == "/meme/generate") {
+      return generate_meme(req);
+    } else if (req.target().to_string() == "/meme/create") {
+      return create_meme(req);
+    } else if (req.target().to_string() == "/meme/browse") {
+      return browse_memes(req);
+    } else {
+      return show_error_page(http::status::not_found,
+                             req.target().to_string() + "page not found");
+    }
   }
 }
 http::response MemeHandler::generate_meme(const http::request &req) const {
@@ -115,7 +129,18 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
   ofs << ss_base_image_body.str();
   ofs.close();
 
+  std::string top = ss_captions_top_body.str();
+  std::string bottom = ss_captions_bottom_body.str();
   std::string style = ss_template_style_body.str();
+  style.erase(std::remove_if(style.begin(), style.end(), ::isspace),
+              style.end());
+  std::vector<std::string> selections;
+  selections.push_back(top);
+  selections.push_back(bottom);
+  selections.push_back(style);
+
+  std::string img_url = +"." + path.string();
+  parent_server_->log_meme(img_url, selections);
   std::ostringstream ss_resp;
   ss_resp
       << "<!DOCTYPE html><html><head><link rel='preconnect' "
@@ -129,18 +154,26 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
          "class='page-layout'><div class=column></div><div class='page-content "
          "column'><h1>Generated Meme</h1><div "
          "class=template><div class='top-text captions'>"
-      << ss_captions_top_body.str()
+      << top
       << "</div>"
          "<div class='bottom-text captions'>"
-      << ss_captions_bottom_body.str()
-      << "</div></div></div><div class=column></div></div></body>"
+      << bottom
+      << "</div></div><form method='post' action='/meme/browse'><button "
+         "style='position: "
+         "absolute; left: 0'>Browse "
+         "Memes</button></form><form method='post' "
+         "action='/meme/create'><button "
+         "style='position: absolute; right: 0'>Create a new "
+         "Meme</button></form></div><div class=column></div></div></body>"
          "<style>"
-         ".template{background-color: white; margin: auto; width: 50vw;height: "
-         "50vw;word-break: "
+         "button{width: 30px; border-radius: 5px;background-color: navy;color: "
+         "white;font-family: 'Sigmar One', cursive;width:50%;font-size: 1vw;}"
+         ".template{background-color: white; margin: auto; width: 40vw;height: "
+         "40vw;word-break: "
          "break-all;margin:1vw;font-family: "
          "'Oswald', sans-serif;text-transform: "
-         "uppercase;background-image:url(."
-      << path.string()
+         "uppercase;background-image:url("
+      << img_url
       << ");background-position: center; background-size:cover; color: "
          "white;font-size: "
          "2vw;-webkit-text-stroke: 1px black;position: "
@@ -157,9 +190,8 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
          "center;font-size: 1.5vw;}.column {display: "
          "grid;justify-content:center;align-content:center;text-align:center;"
          "position: relative}";
+
   enum template_style { white_font = 1, black_background = 2, black_font = 3 };
-  style.erase(std::remove_if(style.begin(), style.end(), ::isspace),
-              style.end());
   int chosen_style = stoi(style);
   switch (chosen_style) {
   case white_font:
@@ -171,11 +203,88 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
     ss_resp << ".captions{color:black; -webkit-text-stroke: 1px white}";
     break;
   default:
-    LOG_DEBUG << "style[0] was: " << style[0];
     return show_error_page(http::status::bad_request, "Invalid meme request");
   }
   ss_resp << "</style></body></html>";
   std::string response_content = ss_resp.str();
+
+  http::response resp;
+  resp.result(http::status::ok);
+  resp.set(http::field::content_type, "text/html");
+  resp.content_length(response_content.length());
+  resp.body() = response_content;
+  resp.prepare_payload();
+  return resp;
+}
+http::response MemeHandler::browse_memes(const http::request &req) const {
+  std::map<std::string, std::vector<std::string>> memes =
+      parent_server_->get_memes();
+  std::ostringstream ss;
+  std::string style;
+  enum template_style { white_font = 1, black_background = 2, black_font = 3 };
+  int chosen_style;
+  ss << "<!DOCTYPE html><html><head><link rel='preconnect' "
+        "href='https://fonts.gstatic.com'>"
+        "<link href"
+        "='https://fonts.googleapis.com/"
+        "css2?family=Odibee+Sans&family=Oswald:wght@700&family=Sigmar+One&"
+        "display=swap' rel='stylesheet'></head>"
+        "<style>"
+        ".template{background-color: white; margin: auto; width: 300px;height: "
+        "300px;word-break: "
+        "break-all;margin:14px;font-family: "
+        "'Oswald', sans-serif;text-transform: "
+        "uppercase;"
+        "background-position: center; background-size:cover; color: "
+        "white;font-size: "
+        "20px;-webkit-text-stroke: 1px black;position: "
+        "relative;align-content: center;}"
+        ".top-text{font-size: 20px;padding: 2% 0% 2% 0%; font-weight: "
+        "bold; width: 100%;position: "
+        "absolute;top:0;text-align: center;}"
+        ".bottom-text{font-size: 20px;padding: 2% 0% 2% "
+        "0%;font-weight:bold;width:100%;position: absolute;bottom: "
+        "0;text-align: center;}button{padding-left: 2% width: 30px; "
+        "border-radius: "
+        "5px;background-color: navy;color: "
+        "white;font-family: 'Sigmar One', cursive;width:50%;font-size: "
+        "1vw;}</style>"
+        "<body style=\"background-color:lightblue; font-family: 'Sigmar "
+        "One', "
+        "cursive;color: navy\"><h1 style='padding-left: 2%'>Browse "
+        "Memes</h1><form method='post' "
+        "action='/meme/create'><button "
+        "style='position: "
+        "absolute; left: 0'>Create a new "
+        "Meme</button></form><br><br>"
+        "<div style='display:flex; flex-wrap: wrap'>";
+  for (auto &meme : memes) {
+    chosen_style = stoi(meme.second[2]);
+    switch (chosen_style) {
+    case white_font:
+      style = "color:white; -webkit-text-stroke: 1px black";
+      break;
+    case black_background:
+      style = "background-color:black";
+      break;
+    case black_font:
+      style = "color:black; -webkit-text-stroke: 1px white";
+      break;
+    default:
+      return show_error_page(http::status::bad_request, "Invalid meme request");
+    }
+    ss << "<div "
+          "class=template style=\"background-image:url('"
+       << meme.first
+       << "')\">"
+          "<div class='top-text captions' style='"
+       << style << "'>" << meme.second[0]
+       << "</div>"
+          "<div class='bottom-text captions' style='"
+       << style << "'>" << meme.second[1] << "</div></div>";
+  }
+  ss << "</body></html>";
+  std::string response_content = ss.str();
 
   http::response resp;
   resp.result(http::status::ok);

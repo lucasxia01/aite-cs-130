@@ -20,6 +20,8 @@ FROM ubuntu:latest as deploy
   COPY --from=builder /usr/src/projects/aite/build/bin/server .
   COPY --from=builder /usr/src/projects/aite/server_config .
   COPY --from=builder /usr/src/projects/aite/static_files/ ./static_files/
+  COPY --from=builder /usr/src/projects/aite/memes/ ./memes/
+
 
 # Exposes the port but doesn't publish it
   EXPOSE 80

@@ -40,6 +40,10 @@ public:
 
   void log_request(std::pair<std::string, http::status>);
 
+  void log_meme(std::string, std::vector<std::string>);
+
+  const std::map<std::string, std::vector<std::string>> get_memes();
+
   const std::map<std::pair<std::string, http::status>, int> get_requests();
 
   const std::map<std::string, std::vector<std::string>> get_prefix_map();
@@ -62,6 +66,7 @@ private:
   static const std::array<std::string, 8> handler_types;
   std::map<std::string, std::vector<std::string>> handler_to_prefixes_;
   std::map<std::string, std::vector<const RequestHandler *>> type_to_handler_;
+  std::map<std::string, std::vector<std::string>> memes_;
   void getHandlers(const NginxConfig &config);
   void create_and_add_handler(std::string type, const std::string &location,
                               const NginxConfig &config);
