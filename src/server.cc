@@ -19,7 +19,7 @@ server::server(int thread_pool_size, const NginxConfig &config)
   std::filesystem::create_directory("./memes/");
   std::error_code ec;
   bool directory = std::filesystem::create_directory("./memes/imgs", ec);
-  if(ec){
+  if (ec) {
     LOG_ERROR << "Failed to create meme directory";
     return;
   }

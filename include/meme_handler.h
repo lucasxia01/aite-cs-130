@@ -25,6 +25,7 @@ private:
   http::response create_meme(const http::request &req) const;
   http::response browse_memes(const http::request &req) const;
   server *parent_server_;
+  std::string root;
 };
 
 #endif // MEME_HANDLER_H

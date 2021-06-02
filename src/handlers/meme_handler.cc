@@ -7,7 +7,19 @@
 #include <fstream>
 
 MemeHandler::MemeHandler(const std::string &location, const NginxConfig &config)
-    : parent_server_(nullptr) {}
+    : parent_server_(nullptr) {
+  std::vector<std::string> values = configLookup(config, {}, "root");
+  if (values.size() != 1) {
+    LOG_FATAL << "Invalid number of root specifiers for " << location
+              << ", only one root should be listed per location";
+  }
+  this->root = values[0];
+  this->root =
+      (this->root[0] == '"' && this->root[this->root.length() - 1] == '"')
+          ? this->root.substr(1, this->root.length() - 2)
+          : this->root;
+}
+
 void MemeHandler::initMeme(server *parent_server) {
   parent_server_ = parent_server;
 }
@@ -30,6 +42,7 @@ http::response MemeHandler::handle_request(const http::request &req) const {
     }
   }
 }
+
 http::response MemeHandler::generate_meme(const http::request &req) const {
   std::string body = req.body();
   if (req.method() != http::verb::post ||
@@ -115,19 +128,29 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
     curr_content_type = match_curr_content_type[0];
     boost::trim(curr_content_type);
   }
+
+  std::string b_body = ss_base_image_body.str();
+
   if (curr_content_type.find("image/") == std::string::npos) {
     return show_error_page(http::status::bad_request, "Bad file type");
   }
 
   curr_content_type = curr_content_type.substr(
       curr_content_type.find("image/") + 6); // image/jpeg -> jpeg
-  std::filesystem::path path{"./memes/imgs"};
-  boost::uuids::uuid u = boost::uuids::random_generator()();
-  path /= boost::uuids::to_string(u) + "." + curr_content_type;
-  std::filesystem::create_directories(path.parent_path());
-  std::ofstream ofs(path);
-  ofs << ss_base_image_body.str();
-  ofs.close();
+  LOG_INFO << "[MemeMetric][" << curr_content_type << "]"
+           << "[" << b_body.length() << "]";
+  std::filesystem::path path = this->root;
+  try {
+    boost::uuids::uuid u = boost::uuids::random_generator()();
+    path /= boost::uuids::to_string(u) + "." + curr_content_type;
+    std::filesystem::create_directories(path.parent_path());
+    std::ofstream ofs(path);
+    ofs << b_body;
+    ofs.close();
+  } catch (std::exception e) {
+    return show_error_page(http::status::internal_server_error,
+                           "Could not write meme to configured filesystem");
+  }
 
   std::string top = ss_captions_top_body.str();
   std::string bottom = ss_captions_bottom_body.str();
@@ -216,6 +239,7 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
   resp.prepare_payload();
   return resp;
 }
+
 http::response MemeHandler::browse_memes(const http::request &req) const {
   std::map<std::string, std::vector<std::string>> memes =
       parent_server_->get_memes();
@@ -294,6 +318,7 @@ http::response MemeHandler::browse_memes(const http::request &req) const {
   resp.prepare_payload();
   return resp;
 }
+
 http::response MemeHandler::create_meme(const http::request &req) const {
   std::string path = convertToAbsolutePath("./memes/meme_creation.html");
   std::ifstream ifs(path, std::ifstream::in);

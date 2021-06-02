@@ -14,9 +14,6 @@ server {
   location /static StaticHandler {
     root "./static_files/";
   }
-  location /memes/imgs StaticHandler {
-    root "./memes/imgs/";
-  }
   location /static_root_dir StaticHandler {
     root "/"; # root of directory
   }
@@ -50,7 +47,11 @@ server {
     
   }
 
+  location /memes/imgs StaticHandler {
+    root "./memes/imgs/"; # Should match root in memehandler
+  }
+
   location /meme MemeHandler {
-    
+    root "./memes/imgs/";
   }
 }
