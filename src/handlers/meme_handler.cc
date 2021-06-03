@@ -85,39 +85,40 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
 
   std::string line;
   if (!std::getline(ss_body, line) || line != "--" + boundary + "\r") {
-    return show_error_page(http::status::bad_request, "Invalid meme request");
+    LOG_DEBUG << "boundary is: " <<boundary << " line is: "<< line;
+    return show_error_page(http::status::bad_request, "Invalid meme request: no boundary");
   }
 
   std::stringstream ss_template_style_header;
   std::stringstream ss_template_style_body;
   if (!this->parse(ss_body, ss_template_style_header, ss_template_style_body,
                    boundary)) {
-    return show_error_page(http::status::bad_request, "Invalid meme request");
+    return show_error_page(http::status::bad_request, "Invalid meme request: error in template selection");
   }
 
   std::stringstream ss_base_image_header;
   std::stringstream ss_base_image_body;
   if (!this->parse(ss_body, ss_base_image_header, ss_base_image_body,
                    boundary)) {
-    return show_error_page(http::status::bad_request, "Invalid meme request");
+    return show_error_page(http::status::bad_request, "Invalid meme request: error in image");
   }
 
   std::stringstream ss_captions_top_header;
   std::stringstream ss_captions_top_body;
   if (!this->parse(ss_body, ss_captions_top_header, ss_captions_top_body,
                    boundary)) {
-    return show_error_page(http::status::bad_request, "Invalid meme request");
+    return show_error_page(http::status::bad_request, "Invalid meme request: error in top caption");
   }
 
   std::stringstream ss_captions_bottom_header;
   std::stringstream ss_captions_bottom_body;
   if (!this->parse(ss_body, ss_captions_bottom_header, ss_captions_bottom_body,
                    boundary)) {
-    return show_error_page(http::status::bad_request, "Invalid meme request");
+    return show_error_page(http::status::bad_request, "Invalid meme request: error in bottom caption");
   }
 
   if (std::getline(ss_body, line)) {
-    return show_error_page(http::status::bad_request, "Invalid meme request");
+    return show_error_page(http::status::bad_request, "Invalid meme request: too many fields");
   }
 
   std::string b_header = ss_base_image_header.str();
@@ -193,7 +194,7 @@ http::response MemeHandler::generate_meme(const http::request &req) const {
          "white;font-family: 'Sigmar One', cursive;width:50%;font-size: 1vw;}"
          ".template{background-color: white; margin: auto; width: 40vw;height: "
          "40vw;word-break: "
-         "break-all;margin:1vw;font-family: "
+         "normal;margin:1vw;font-family: "
          "'Oswald', sans-serif;text-transform: "
          "uppercase;background-image:url("
       << img_url
@@ -256,7 +257,7 @@ http::response MemeHandler::browse_memes(const http::request &req) const {
         "<style>"
         ".template{background-color: white; margin: auto; width: 300px;height: "
         "300px;word-break: "
-        "break-all;margin:14px;font-family: "
+        "normal;margin:14px;font-family: "
         "'Oswald', sans-serif;text-transform: "
         "uppercase;"
         "background-position: center; background-size:cover; color: "

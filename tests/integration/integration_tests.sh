@@ -246,6 +246,23 @@ else
     echo "PASSED test_multithreading"
 fi
 
+#########################################################################################
+# test_meme: meme request
+#########################################################################################
+echo "--------- STARTING test_meme ---------"
+cd test_output
+curl -s -X POST -H "Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAHjzYinpYZdUYBBa" -H "Expect: " -o meme_output.txt -d "$(cat ../post_request.txt)" localhost:8080/meme/generate
+grep -q "tester" meme_output.txt
+result=$?
+cd ..
+files=(memes/imgs/*)
+if [ ${#files[@]} -ne 1 ] || [ $result -ne 0 ]; then 
+    echo "FAILED test_memes"
+    passed_all_tests=false
+else    
+    echo "PASSED test_memes"
+fi
+
 
 #########################################################################################
 # CLEANUP
@@ -260,6 +277,7 @@ debug_logs_count=$(cat test_output/integration.log | grep "\[debug\]" | wc -l)
 rm -rf static_test_output
 rm -rf test_output
 rm -rf logs
+rm -rf memes
 
 if [[ $info_logs_count -eq 0 || $debug_logs_count -eq 0 ]]; then
     echo "Invalid log count"

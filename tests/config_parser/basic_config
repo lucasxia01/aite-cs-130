@@ -13,8 +13,12 @@ server {
   location /static2 StaticHandler {
     root "/doesnotexist";
   }
-  location /memes/imgs StaticHandler{
-    root ../../../memes/imgs;
+  location /memes/imgs StaticHandler {
+    root "./memes/imgs/"; # Should match root in memehandler
+  }
+
+  location /meme MemeHandler {
+    root "./memes/imgs/";
   }
   location / NotFoundHandler{
   }
